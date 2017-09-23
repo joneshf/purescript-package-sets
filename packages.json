@@ -293,6 +293,15 @@
     "repo": "https://github.com/purerl/purescript-erl-lists.git",
     "version": "2.0.0"
   },
+  "erl-process": {
+    "dependencies": [
+        "console",
+        "prelude",
+        "eff"
+    ],
+    "repo": "https://github.com/purerl/purescript-erl-process.git",
+    "version": "v1.0.0"
+  },
   "erl-tuples": {
     "dependencies": [
       "bifunctors",
@@ -851,15 +860,6 @@
     "dependencies": [],
     "repo": "https://github.com/purerl/purescript-prelude.git",
     "version": "v3.1.0-erl1"
-  },
-  "process": {
-    "dependencies": [
-        "console",
-        "prelude",
-        "eff"
-    ],
-    "repo": "https://github.com/purerl/package-sets.git",
-    "version": "v1.0.0"
   },
   "profunctor": {
     "dependencies": [
