@@ -1136,7 +1136,7 @@
       "unsafe-coerce"
     ],
     "repo": "https://github.com/purescript/purescript-typelevel-prelude.git",
-    "version": "v2.0.0"
+    "version": "v2.4.0"
   },
   "unfoldable": {
     "dependencies": [
