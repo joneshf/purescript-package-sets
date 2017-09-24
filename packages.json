@@ -707,6 +707,25 @@
     "repo": "https://github.com/garyb/purescript-indexed-monad.git",
     "version": "v0.1.1"
   },
+  "inject": {
+    "dependencies": [
+      "const",
+      "contravariant",
+      "control",
+      "either",
+      "foldable-traversable",
+      "functors",
+      "invariant",
+      "maybe",
+      "monoid",
+      "newtype",
+      "prelude",
+      "tuples",
+      "unsafe-coerce"
+    ],
+    "repo": "https://github.com/purescript/purescript-inject.git",
+    "version": "v4.0.0"
+  },
   "integers": {
     "dependencies": [
       "control",
