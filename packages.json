@@ -1339,5 +1339,41 @@
     ],
     "repo": "https://github.com/purerl/purescript-uri.git",
     "version": "v3.0.0-erl1"
+  },
+  "variant": {
+    "dependencies": [
+      "arrays",
+      "assert",
+      "bifunctors",
+      "console",
+      "control",
+      "eff",
+      "either",
+      "foldable-traversable",
+      "identity",
+      "invariant",
+      "lazy",
+      "lists",
+      "math",
+      "maybe",
+      "monoid",
+      "newtype",
+      "nonempty",
+      "partial",
+      "prelude",
+      "proxy",
+      "record",
+      "st",
+      "strings",
+      "symbols",
+      "tailrec",
+      "tuples",
+      "type-equality",
+      "typelevel-prelude",
+      "unfoldable",
+      "unsafe-coerce"
+    ],
+    "repo": "https://github.com/natefaubion/purescript-variant.git",
+    "version": "v3.2.1"
   }
 }
