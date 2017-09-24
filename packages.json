@@ -981,6 +981,14 @@
     "repo": "https://github.com/bodil/purescript-smolder.git",
     "version": "v9.0.0"
   },
+  "st": {
+    "dependencies": [
+      "eff",
+      "prelude"
+    ],
+    "repo": "https://github.com/joneshf/purescript-st.git",
+    "version": "v3.0.0-erl1"
+  },
   "strings": {
     "dependencies": [
       "assert",
