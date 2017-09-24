@@ -1004,6 +1004,14 @@
     "repo": "https://github.com/joneshf/purescript-record.git",
     "version": "v0.2.0-erl1"
   },
+  "refs": {
+    "dependencies": [
+      "eff",
+      "prelude"
+    ],
+    "repo": "https://github.com/joneshf/purescript-refs.git",
+    "version": "v3.0.0-erl1"
+  },
   "smolder": {
     "dependencies": [
       "arrays",
