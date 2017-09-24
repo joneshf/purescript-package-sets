@@ -396,6 +396,25 @@
     "repo": "https://github.com/purerl/purescript-functions.git",
     "version": "v3.0.0-erl1"
   },
+  "functors": {
+    "dependencies": [
+      "bifunctors",
+      "const",
+      "contravariant",
+      "control",
+      "either",
+      "foldable-traversable",
+      "invariant",
+      "maybe",
+      "monoid",
+      "newtype",
+      "prelude",
+      "tuples",
+      "unsafe-coerce"
+    ],
+    "repo": "https://github.com/purescript/purescript-functors.git",
+    "version": "v2.2.0"
+  },
   "gen": {
     "dependencies": [
       "bifunctors",
