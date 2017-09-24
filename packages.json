@@ -914,6 +914,22 @@
     "repo": "https://github.com/purerl/purescript-random.git",
     "version": "v3.0.0-erl1"
   },
+  "record": {
+    "dependencies": [
+      "assert",
+      "console",
+      "eff",
+      "functions",
+      "prelude",
+      "proxy",
+      "symbols",
+      "type-equality",
+      "typelevel-prelude",
+      "unsafe-coerce"
+    ],
+    "repo": "https://github.com/joneshf/purescript-record.git",
+    "version": "v0.2.0-erl1"
+  },
   "smolder": {
     "dependencies": [
       "arrays",
