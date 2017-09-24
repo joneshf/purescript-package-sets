@@ -30,6 +30,23 @@
     "repo": "https://github.com/purerl/purescript-aff.git",
     "version": "v3.1.0-erl2"
   },
+  "ansi": {
+    "dependencies": [
+      "bifunctors",
+      "control",
+      "either",
+      "foldable-traversable",
+      "invariant",
+      "maybe",
+      "monoid",
+      "newtype",
+      "partial",
+      "prelude",
+      "strings"
+    ],
+    "repo": "https://github.com/hdgarrood/purescript-ansi.git",
+    "version": "v4.0.0"
+  },
   "arrays": {
     "dependencies": [
       "bifunctors",
