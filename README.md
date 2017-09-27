@@ -13,6 +13,6 @@ Each tag is prefixed with the package set and suffixed with a timestamp in `YYYY
 
 E.g. [purerl-0.11.6-20170924143303][]
 
-[psc-0.11.6]: tree/psc-0.11.6
-[purerl-0.11.6]: tree/purerl-0.11.6
-[purerl-0.11.6-20170924143303]: releases/tag/purerl-0.11.6-20170924143303
+[psc-0.11.6]: https://github.com/joneshf/purescript-package-sets/tree/psc-0.11.6
+[purerl-0.11.6]: https://github.com/joneshf/purescript-package-sets/tree/purerl-0.11.6
+[purerl-0.11.6-20170924143303]: https://github.com/joneshf/purescript-package-sets/releases/tag/purerl-0.11.6-20170924143303
