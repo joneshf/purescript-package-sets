@@ -1,4 +1,4 @@
-module Main where
+module Main (main) where
 
 import Control.Bind (discard)
 import Control.Monad.Eff (Eff)
