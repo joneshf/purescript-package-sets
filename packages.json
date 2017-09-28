@@ -1008,6 +1008,15 @@
     "repo": "https://github.com/purescript/purescript-proxy.git",
     "version": "v2.0.0"
   },
+  "psci-support": {
+    "dependencies": [
+      "console",
+      "eff",
+      "prelude"
+    ],
+    "repo": "https://github.com/purescript/purescript-psci-support.git",
+    "version": "v3.0.0"
+  },
   "quickcheck": {
     "dependencies": [
       "enums",
