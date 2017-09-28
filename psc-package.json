@@ -3,6 +3,8 @@
     "set": "psc-0.11.6-20170927065737",
     "source": "https://github.com/joneshf/purescript-package-sets.git",
     "depends": [
+        "dom-classy",
+        "affjax",
         "uri",
         "halogen",
         "console",
