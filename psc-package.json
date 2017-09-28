@@ -1,0 +1,11 @@
+{
+    "name": "purescript-package-sets",
+    "set": "psc-0.11.6-20170927065737",
+    "source": "https://github.com/joneshf/purescript-package-sets.git",
+    "depends": [
+        "uri",
+        "halogen",
+        "console",
+        "prelude"
+    ]
+}
