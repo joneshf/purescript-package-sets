@@ -16,17 +16,16 @@ import DOM.HTML.Types (htmlDocumentToDocument)
 import DOM.HTML.Window (document)
 import DOM.Node.NonElementParentNode (getElementById)
 import DOM.Node.Types (ElementId(..), NonElementParentNode, documentToNonElementParentNode)
-import Data.Argonaut.Core (toObject)
-import Data.Either (Either(..))
+import Data.Either (Either(..), either)
 import Data.Filterable (filter)
 import Data.Foldable (for_, intercalate)
-import Data.Function (($))
+import Data.Function (const, ($))
 import Data.Functor ((<$>))
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(Nothing))
 import Data.NaturalTransformation (type (~>))
-import Data.Newtype (wrap)
+import Data.Newtype (class Newtype, un, wrap)
 import Data.Semigroup ((<>))
-import Data.StrMap (keys)
+import Data.StrMap (StrMap, keys)
 import Data.String (contains)
 import Data.Traversable (traverse)
 import Data.URI (URI, printURI, runParseURI)
@@ -40,6 +39,7 @@ import Halogen.HTML.Properties as HP
 import Halogen.VDom.Driver (runUI)
 import Network.HTTP.Affjax (AJAX)
 import Network.HTTP.Affjax as Affjax
+import Simple.JSON (class ReadForeign, readJSON)
 import Text.Parsing.StringParser (ParseError)
 
 main :: Eff (HA.HalogenEffects (ajax :: AJAX, console :: CONSOLE)) Unit
@@ -62,7 +62,7 @@ loadData
 loadData parent url ident = do
   container <- liftEff $ getElementById ident parent
   json <- _.response <$> Affjax.get (printURI url)
-  let packages = fromMaybe [] $ keys <$> toObject json
+  let packages = either (const []) (keys <<< un PackageSetPackage) $ readJSON json
 
   for_ (container >>= fromElement) $ runUI (packageSet packages) unit
 
@@ -84,6 +84,28 @@ search str = Search str unit
 type Message = Void
 
 type State = Array String
+
+newtype Package
+  = Package
+    { name :: String
+    , repo :: String
+    , version :: String
+    }
+
+derive instance newtypePackage :: Newtype Package _
+
+newtype PackageSetPackage
+  = PackageSetPackage
+    (StrMap
+      { dependencies :: Array String
+      , repo :: String
+      , version :: String
+      }
+    )
+
+derive instance newtypePackageSetPackage :: Newtype PackageSetPackage _
+derive newtype instance readForeignPackageSetPackage
+  :: ReadForeign PackageSetPackage
 
 packageSet :: forall m. State -> H.Component HH.HTML Query Unit Message m
 packageSet packages' =
