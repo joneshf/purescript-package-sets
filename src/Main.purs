@@ -16,16 +16,16 @@ import DOM.HTML.Types (htmlDocumentToDocument)
 import DOM.HTML.Window (document)
 import DOM.Node.NonElementParentNode (getElementById)
 import DOM.Node.Types (ElementId(..), NonElementParentNode, documentToNonElementParentNode)
-import Data.Either (Either(..), either)
+import Data.Either (Either(Right))
 import Data.Filterable (filter)
-import Data.Foldable (for_, intercalate)
-import Data.Function (const, ($))
+import Data.Foldable (for_)
+import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Maybe (Maybe(Nothing))
 import Data.NaturalTransformation (type (~>))
 import Data.Newtype (class Newtype, un, wrap)
 import Data.Semigroup ((<>))
-import Data.StrMap (StrMap, keys)
+import Data.StrMap (StrMap, foldMap)
 import Data.String (contains)
 import Data.Traversable (traverse)
 import Data.URI (URI, printURI, runParseURI)
@@ -62,7 +62,10 @@ loadData
 loadData parent url ident = do
   container <- liftEff $ getElementById ident parent
   json <- _.response <$> Affjax.get (printURI url)
-  let packages = either (const []) (keys <<< un PackageSetPackage) $ readJSON json
+  let packages = case readJSON json of
+        Right (PackageSetPackage psp) ->
+          foldMap (\name { repo, version } -> [Package { name, repo, version }]) psp
+        _ -> []
 
   for_ (container >>= fromElement) $ runUI (packageSet packages) unit
 
@@ -83,7 +86,7 @@ search str = Search str unit
 
 type Message = Void
 
-type State = Array String
+type State = Array Package
 
 newtype Package
   = Package
@@ -119,7 +122,7 @@ packageSet packages' =
     eval :: Query ~> H.ComponentDSL State Query Message m
     eval = case _ of
       Search str x -> do
-        put $ filter (contains $ wrap str) packages'
+        put $ filter (contains (wrap str) <<< _.name <<< un Package) packages'
         pure x
 
     initialState :: forall a. a -> State
@@ -133,7 +136,29 @@ packageSet packages' =
       HH.div_
         [ HH.input
           [ HE.onValueInput (pure <<< search)
+          , HP.placeholder "Search"
           , HP.type_ InputText
           ]
-        , HH.pre_ [HH.text $ intercalate "\n" packages]
+        , HH.table_
+          [ HH.thead_
+            [ HH.tr_
+              [ HH.th_ [ HH.text "name" ]
+              , HH.th_ [ HH.text "version" ]
+              ]
+            ]
+          , HH.tbody_
+            (packageRow <$> packages)
+          ]
+        ]
+
+    packageRow :: Package -> H.ComponentHTML Query
+    packageRow (Package { name, repo, version }) =
+      HH.tr_
+        [ HH.td_
+          [ HH.a
+            [ HP.href repo ]
+            [ HH.text name ]
+          ]
+        , HH.td_
+          [ HH.text version ]
         ]
