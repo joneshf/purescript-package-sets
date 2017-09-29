@@ -3,7 +3,7 @@ module Main (main) where
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (>>=))
 import Control.Monad.Aff (Aff)
-import Control.Monad.Aff.Console (log)
+import Control.Monad.Aff.Console (logShow)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console (CONSOLE)
@@ -16,11 +16,11 @@ import DOM.HTML.Types (htmlDocumentToDocument)
 import DOM.HTML.Window (document)
 import DOM.Node.NonElementParentNode (getElementById)
 import DOM.Node.Types (ElementId(..), NonElementParentNode, documentToNonElementParentNode)
-import Data.Either (Either(Right))
+import Data.Either (Either(..), either)
 import Data.Filterable (filter)
-import Data.Foldable (for_)
+import Data.Foldable (for_, traverse_)
 import Data.Function (($))
-import Data.Functor ((<$>))
+import Data.Functor ((<#>), (<$>))
 import Data.Maybe (Maybe(Nothing))
 import Data.NaturalTransformation (type (~>))
 import Data.Newtype (class Newtype, un, wrap)
@@ -46,37 +46,55 @@ main :: Eff (HA.HalogenEffects (ajax :: AJAX, console :: CONSOLE)) Unit
 main = HA.runHalogenAff do
   doc <- liftEff $ window >>= document
   let parent = documentToNonElementParentNode $ htmlDocumentToDocument doc
+  either logShow (traverse_ $ loadData parent) $ traverse parsePackageSet sets
 
-  case traverse packageSetURL ["psc-0.11.6", "purerl-0.11.6"] of
-    Right [pscURI, purerlURI] -> do
-      loadData parent pscURI (ElementId "psc-container")
-      loadData parent purerlURI (ElementId "purerl-container")
-    _ -> log "whoops"
+sets :: Array (PackageSetData String)
+sets =
+  [ PackageSetData
+    { name: SetName "psc"
+    , set: "psc-0.11.6"
+    }
+  , PackageSetData
+    { name: SetName "purerl"
+    , set: "purerl-0.11.6"
+    }
+  ]
 
 loadData
   :: forall e
   . NonElementParentNode
-  -> URI
-  -> ElementId
+  -> PackageSetData URI
   -> Aff (HA.HalogenEffects (ajax :: AJAX | e)) Unit
-loadData parent url ident = do
-  container <- liftEff $ getElementById ident parent
-  json <- _.response <$> Affjax.get (printURI url)
+loadData parent (PackageSetData x ) = do
+  container <- liftEff $ getElementById (ElementId "sets") parent
+  json <- _.response <$> Affjax.get (printURI x.set)
   let packages = case readJSON json of
-        Right (PackageSetPackage psp) ->
-          foldMap (\name { repo, version } -> [Package { name, repo, version }]) psp
+        Right (PackageSetPackage y) ->
+          foldMap (\name { repo, version } -> [wrap { name, repo, version }]) y
         _ -> []
 
-  for_ (container >>= fromElement) $ runUI (packageSet packages) unit
+  for_ (container >>= fromElement) $ runUI (packageSet x.name packages) unit
 
-packageSetURL :: String -> Either ParseError URI
-packageSetURL set =
-  runParseURI url
+parsePackageSet :: PackageSetData String -> Either ParseError (PackageSetData URI)
+parsePackageSet (PackageSetData {name, set}) =
+  runParseURI url <#> PackageSetData <<< {name, set: _}
   where
   url =
     "https://cdn.rawgit.com/joneshf/purescript-package-sets/"
       <> set
       <> "/packages.json"
+
+newtype PackageSetData set
+  = PackageSetData
+    { name :: SetName
+    , set :: set
+    }
+
+newtype SetName
+  = SetName String
+
+newtype SetVersion
+  = SetVersion String
 
 data Query a
   = Search String a
@@ -110,8 +128,8 @@ derive instance newtypePackageSetPackage :: Newtype PackageSetPackage _
 derive newtype instance readForeignPackageSetPackage
   :: ReadForeign PackageSetPackage
 
-packageSet :: forall m. State -> H.Component HH.HTML Query Unit Message m
-packageSet packages' =
+packageSet :: forall m. SetName -> State -> H.Component HH.HTML Query Unit Message m
+packageSet (SetName setName) packages' =
   H.component
     { eval
     , initialState
@@ -133,8 +151,11 @@ packageSet packages' =
 
     render :: State -> H.ComponentHTML Query
     render packages =
-      HH.div_
-        [ HH.input
+      HH.article_
+        [ HH.h2
+          [ HP.class_ $ wrap "set" ]
+          [ HH.text setName ]
+        , HH.input
           [ HP.class_ $ wrap "search"
           , HE.onValueInput (pure <<< search)
           , HP.placeholder "Search"
