@@ -7,21 +7,27 @@ import Control.Monad.Aff.Console (log)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console (CONSOLE)
+import Control.Monad.State.Class (put)
+import Control.Semigroupoid ((<<<))
 import DOM.Classy.Element (fromElement)
 import DOM.HTML (window)
+import DOM.HTML.Indexed.InputType (InputType(..))
 import DOM.HTML.Types (htmlDocumentToDocument)
 import DOM.HTML.Window (document)
 import DOM.Node.NonElementParentNode (getElementById)
 import DOM.Node.Types (ElementId(..), NonElementParentNode, documentToNonElementParentNode)
 import Data.Argonaut.Core (toObject)
 import Data.Either (Either(..))
+import Data.Filterable (filter)
 import Data.Foldable (for_, intercalate)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.NaturalTransformation (type (~>))
+import Data.Newtype (wrap)
 import Data.Semigroup ((<>))
 import Data.StrMap (keys)
+import Data.String (contains)
 import Data.Traversable (traverse)
 import Data.URI (URI, printURI, runParseURI)
 import Data.Unit (Unit, unit)
@@ -29,8 +35,11 @@ import Data.Void (Void)
 import Halogen as H
 import Halogen.Aff as HA
 import Halogen.HTML as HH
+import Halogen.HTML.Events as HE
+import Halogen.HTML.Properties as HP
 import Halogen.VDom.Driver (runUI)
-import Network.HTTP.Affjax (AJAX, get)
+import Network.HTTP.Affjax (AJAX)
+import Network.HTTP.Affjax as Affjax
 import Text.Parsing.StringParser (ParseError)
 
 main :: Eff (HA.HalogenEffects (ajax :: AJAX, console :: CONSOLE)) Unit
@@ -52,7 +61,7 @@ loadData
   -> Aff (HA.HalogenEffects (ajax :: AJAX | e)) Unit
 loadData parent url ident = do
   container <- liftEff $ getElementById ident parent
-  json <- _.response <$> get (printURI url)
+  json <- _.response <$> Affjax.get (printURI url)
   let packages = fromMaybe [] $ keys <$> toObject json
 
   for_ (container >>= fromElement) $ runUI (packageSet packages) unit
@@ -67,7 +76,10 @@ packageSetURL set =
       <> "/packages.json"
 
 data Query a
-  = Nope a
+  = Search String a
+
+search :: String -> Query Unit
+search str = Search str unit
 
 type Message = Void
 
@@ -84,7 +96,9 @@ packageSet packages' =
     where
     eval :: Query ~> H.ComponentDSL State Query Message m
     eval = case _ of
-      Nope x -> pure x
+      Search str x -> do
+        put $ filter (contains $ wrap str) packages'
+        pure x
 
     initialState :: forall a. a -> State
     initialState _ = packages'
@@ -94,6 +108,10 @@ packageSet packages' =
 
     render :: State -> H.ComponentHTML Query
     render packages =
-      HH.pre_
-        [ HH.text $ intercalate "\n" packages
+      HH.div_
+        [ HH.input
+          [ HE.onValueInput (pure <<< search)
+          , HP.type_ InputText
+          ]
+        , HH.pre_ [HH.text $ intercalate "\n" packages]
         ]
