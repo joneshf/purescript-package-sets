@@ -135,15 +135,22 @@ packageSet packages' =
     render packages =
       HH.div_
         [ HH.input
-          [ HE.onValueInput (pure <<< search)
+          [ HP.class_ $ wrap "search"
+          , HE.onValueInput (pure <<< search)
           , HP.placeholder "Search"
           , HP.type_ InputText
           ]
-        , HH.table_
+        , HH.table
+          [ HP.class_ $ wrap "packages" ]
           [ HH.thead_
-            [ HH.tr_
-              [ HH.th_ [ HH.text "name" ]
-              , HH.th_ [ HH.text "version" ]
+            [ HH.tr
+              [ HP.classes [ wrap "package", wrap "package-header" ] ]
+              [ HH.th
+                [ HP.class_ $ wrap "package-name" ]
+                [ HH.text "name" ]
+              , HH.th
+                [ HP.class_ $ wrap "package-version" ]
+                [ HH.text "version" ]
               ]
             ]
           , HH.tbody_
@@ -153,12 +160,15 @@ packageSet packages' =
 
     packageRow :: Package -> H.ComponentHTML Query
     packageRow (Package { name, repo, version }) =
-      HH.tr_
-        [ HH.td_
+      HH.tr
+        [ HP.class_ $ wrap "package" ]
+        [ HH.td
+          [ HP.class_ $ wrap "package-name" ]
           [ HH.a
             [ HP.href repo ]
             [ HH.text name ]
           ]
-        , HH.td_
+        , HH.td
+          [ HP.class_ $ wrap "package-version" ]
           [ HH.text version ]
         ]
