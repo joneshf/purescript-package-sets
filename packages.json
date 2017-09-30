@@ -1220,7 +1220,7 @@
       "prelude"
     ],
     "repo": "https://github.com/joneshf/purescript-st.git",
-    "version": "v3.0.0-erl2"
+    "version": "v3.0.0-erl3"
   },
   "strings": {
     "dependencies": [
