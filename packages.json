@@ -1069,7 +1069,7 @@
       "prelude"
     ],
     "repo": "https://github.com/joneshf/purescript-refs.git",
-    "version": "v3.0.0-erl1"
+    "version": "v3.0.0-erl2"
   },
   "run": {
     "dependencies": [
