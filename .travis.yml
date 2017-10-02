@@ -1,3 +1,9 @@
+addons:
+  apt:
+    packages:
+      - libncursesw5
+      - libncursesw5-dev
+
 cache:
   directories:
     - .psc-package
