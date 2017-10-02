@@ -79,6 +79,27 @@
     "repo": "https://github.com/purerl/purescript-assert.git",
     "version": "v3.0.0-erl1"
   },
+  "avar": {
+    "dependencies": [
+      "assert",
+      "bifunctors",
+      "console",
+      "control",
+      "eff",
+      "either",
+      "exceptions",
+      "foldable-traversable",
+      "functions",
+      "invariant",
+      "maybe",
+      "monoid",
+      "newtype",
+      "prelude",
+      "refs"
+    ],
+    "repo": "https://github.com/joneshf/purescript-avar.git",
+    "version": "v2.0.1-erl1"
+  },
   "bifunctors": {
     "dependencies": [
       "control",
