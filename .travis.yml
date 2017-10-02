@@ -1,0 +1,27 @@
+cache:
+  directories:
+    - .psc-package
+
+env:
+  - PATH=$HOME/purescript:$HOME/psc-package:$PATH
+
+install:
+  - TAG=v0.11.6-erl1
+  - PSC_PACKAGE_TAG=v0.2.0
+  - wget -O $HOME/purescript.tar.gz https://github.com/purerl/purescript/releases/download/$TAG/linux64.tar.gz
+  - tar -xvf $HOME/purescript.tar.gz -C $HOME/
+  - chmod a+x $HOME/purescript
+  - wget -O $HOME/psc-package.tar.gz https://github.com/purescript/psc-package/releases/download/$PSC_PACKAGE_TAG/linux64.tar.gz
+  - tar -xvf $HOME/psc-package.tar.gz -C $HOME/
+  - chmod a+x $HOME/psc-package
+
+language: erlang
+
+otp_release:
+  - 19.0
+
+script:
+  - "echo '{ \"name\": \"test-package\", \"set\": \"testing\", \"source\": \"\", \"depends\": [] }' > psc-package.json"
+  - mkdir -p .psc-package/testing/.set
+  - cp packages.json .psc-package/testing/.set/packages.json
+  - psc-package verify-set
