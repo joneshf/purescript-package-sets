@@ -129,67 +129,74 @@ derive newtype instance readForeignPackageSetPackage
   :: ReadForeign PackageSetPackage
 
 packageSet :: forall m. SetName -> State -> H.Component HH.HTML Query Unit Message m
-packageSet (SetName setName) packages' =
-  H.component
-    { eval
-    , initialState
-    , receiver
-    , render
-    }
-    where
-    eval :: Query ~> H.ComponentDSL State Query Message m
-    eval = case _ of
-      Search str x -> do
-        put $ filter (contains (wrap str) <<< _.name <<< un Package) packages'
-        pure x
+packageSet setName packages' =
+  H.component { eval, initialState, receiver, render }
+  where
+  eval :: Query ~> H.ComponentDSL State Query Message m
+  eval = case _ of
+    Search str x -> do
+      put $ filter (contains (wrap str) <<< _.name <<< un Package) packages'
+      pure x
 
-    initialState :: forall a. a -> State
-    initialState _ = packages'
+  initialState :: forall a. a -> State
+  initialState _ = packages'
 
-    receiver :: forall a. a -> Maybe (Query a)
-    receiver _ = Nothing
+  receiver :: forall a f. a -> Maybe (f a)
+  receiver _ = Nothing
 
-    render :: State -> H.ComponentHTML Query
-    render packages =
-      HH.article_
-        [ HH.h2
-          [ HP.class_ $ wrap "set" ]
-          [ HH.text setName ]
-        , HH.input
-          [ HP.class_ $ wrap "search"
-          , HE.onValueInput (pure <<< search)
-          , HP.placeholder "Search"
-          , HP.type_ InputText
-          ]
-        , HH.table
-          [ HP.class_ $ wrap "packages" ]
-          [ HH.thead_
-            [ HH.tr
-              [ HP.classes [ wrap "package", wrap "package-header" ] ]
-              [ HH.th
-                [ HP.class_ $ wrap "package-name" ]
-                [ HH.text "name" ]
-              , HH.th
-                [ HP.class_ $ wrap "package-version" ]
-                [ HH.text "version" ]
-              ]
-            ]
-          , HH.tbody_
-            (packageRow <$> packages)
-          ]
-        ]
+  render :: State -> H.ComponentHTML Query
+  render packages =
+    HH.article_
+      [ renderName setName
+      , renderSearch
+      , renderResults packages
+      ]
 
-    packageRow :: Package -> H.ComponentHTML Query
-    packageRow (Package { name, repo, version }) =
-      HH.tr
-        [ HP.class_ $ wrap "package" ]
-        [ HH.td
+renderResults :: forall f. Array Package -> H.ComponentHTML f
+renderResults packages =
+  HH.table
+    [ HP.class_ $ wrap "packages" ]
+    [ HH.thead_
+      [ HH.tr
+        [ HP.classes [ wrap "package", wrap "package-header" ] ]
+        [ HH.th
           [ HP.class_ $ wrap "package-name" ]
-          [ HH.a
-            [ HP.href repo ]
-            [ HH.text name ]
-          ]
-        , HH.td
+          [ HH.text "name" ]
+        , HH.th
           [ HP.class_ $ wrap "package-version" ]
-          [ HH.text version ]
+          [ HH.text "version" ]
         ]
+      ]
+    , HH.tbody_
+      (packageRow <$> packages)
+    ]
+
+renderSearch :: H.ComponentHTML Query
+renderSearch =
+  HH.input
+    [ HP.class_ $ wrap "search"
+    , HE.onValueInput (pure <<< search)
+    , HP.placeholder "Search"
+    , HP.type_ InputText
+    ]
+
+renderName :: forall f. SetName -> H.ComponentHTML f
+renderName (SetName setName) =
+  HH.h2
+    [ HP.class_ $ wrap "set" ]
+    [ HH.text setName ]
+
+packageRow :: forall f. Package -> H.ComponentHTML f
+packageRow (Package { name, repo, version }) =
+  HH.tr
+    [ HP.class_ $ wrap "package" ]
+    [ HH.td
+      [ HP.class_ $ wrap "package-name" ]
+      [ HH.a
+        [ HP.href repo ]
+        [ HH.text name ]
+      ]
+    , HH.td
+      [ HP.class_ $ wrap "package-version" ]
+      [ HH.text version ]
+    ]

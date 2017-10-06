@@ -11685,6 +11685,12 @@ var PS = {};
   var search = function (str) {
       return new Search(str, Data_Unit.unit);
   };
+  var renderSearch = Halogen_HTML_Elements.input([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("search")), Halogen_HTML_Events.onValueInput(function ($42) {
+      return Control_Applicative.pure(Data_Maybe.applicativeMaybe)(search($42));
+  }), Halogen_HTML_Properties.placeholder("Search"), Halogen_HTML_Properties.type_(Halogen_HTML_Core.inputTypeIsProp)(DOM_HTML_Indexed_InputType.InputText.value) ]);
+  var renderName = function (v) {
+      return Halogen_HTML_Elements.h2([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("set")) ])([ Halogen_HTML_Core.text(v) ]);
+  };
   var readForeignPackageSetPackage = Simple_JSON.readStrMap(Simple_JSON.readRecord()(Simple_JSON.readFieldsCons(new Data_Symbol.IsSymbol(function () {
       return "dependencies";
   }))(Simple_JSON.readArray(Simple_JSON.readString))(Simple_JSON.readFieldsCons(new Data_Symbol.IsSymbol(function () {
@@ -11703,35 +11709,36 @@ var PS = {};
           })($43));
       });
   };
+  var packageRow = function (v) {
+      return Halogen_HTML_Elements.tr([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package")) ])([ Halogen_HTML_Elements.td([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-name")) ])([ Halogen_HTML_Elements.a([ Halogen_HTML_Properties.href(v.repo) ])([ Halogen_HTML_Core.text(v.name) ]) ]), Halogen_HTML_Elements.td([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-version")) ])([ Halogen_HTML_Core.text(v.version) ]) ]);
+  };
+  var renderResults = function (packages) {
+      return Halogen_HTML_Elements.table([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("packages")) ])([ Halogen_HTML_Elements.thead_([ Halogen_HTML_Elements.tr([ Halogen_HTML_Properties.classes([ Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package"), Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-header") ]) ])([ Halogen_HTML_Elements.th([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-name")) ])([ Halogen_HTML_Core.text("name") ]), Halogen_HTML_Elements.th([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-version")) ])([ Halogen_HTML_Core.text("version") ]) ]) ]), Halogen_HTML_Elements.tbody_(Data_Functor.map(Data_Functor.functorArray)(packageRow)(packages)) ]);
+  };
   var newtypePackageSetPackage = new Data_Newtype.Newtype(function (n) {
       return n;
   }, PackageSetPackage);
   var newtypePackage = new Data_Newtype.Newtype(function (n) {
       return n;
   }, Package);
-  var packageSet = function (v) {
+  var packageSet = function (setName) {
       return function (packages$prime) {
-          var receiver = function (v1) {
+          var render = function (packages) {
+              return Halogen_HTML_Elements.article_([ renderName(setName), renderSearch, renderResults(packages) ]);
+          };
+          var receiver = function (v) {
               return Data_Maybe.Nothing.value;
           };
-          var packageRow = function (v1) {
-              return Halogen_HTML_Elements.tr([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package")) ])([ Halogen_HTML_Elements.td([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-name")) ])([ Halogen_HTML_Elements.a([ Halogen_HTML_Properties.href(v1.repo) ])([ Halogen_HTML_Core.text(v1.name) ]) ]), Halogen_HTML_Elements.td([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-version")) ])([ Halogen_HTML_Core.text(v1.version) ]) ]);
-          };
-          var render = function (packages) {
-              return Halogen_HTML_Elements.article_([ Halogen_HTML_Elements.h2([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("set")) ])([ Halogen_HTML_Core.text(v) ]), Halogen_HTML_Elements.input([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("search")), Halogen_HTML_Events.onValueInput(function ($44) {
-                  return Control_Applicative.pure(Data_Maybe.applicativeMaybe)(search($44));
-              }), Halogen_HTML_Properties.placeholder("Search"), Halogen_HTML_Properties.type_(Halogen_HTML_Core.inputTypeIsProp)(DOM_HTML_Indexed_InputType.InputText.value) ]), Halogen_HTML_Elements.table([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("packages")) ])([ Halogen_HTML_Elements.thead_([ Halogen_HTML_Elements.tr([ Halogen_HTML_Properties.classes([ Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package"), Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-header") ]) ])([ Halogen_HTML_Elements.th([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-name")) ])([ Halogen_HTML_Core.text("name") ]), Halogen_HTML_Elements.th([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-version")) ])([ Halogen_HTML_Core.text("version") ]) ]) ]), Halogen_HTML_Elements.tbody_(Data_Functor.map(Data_Functor.functorArray)(packageRow)(packages)) ]) ]);
-          };
-          var initialState = function (v1) {
+          var initialState = function (v) {
               return packages$prime;
           };
-          var $$eval = function (v1) {
-              return Control_Bind.discard(Control_Bind.discardUnit)(Halogen_Query_HalogenM.bindHalogenM)(Control_Monad_State_Class.put(Halogen_Query_HalogenM.monadStateHalogenM)(Data_Filterable.filter(Data_Filterable.filterableArray)(function ($45) {
-                  return Data_String.contains(Data_Newtype.wrap(Data_String.newtypePattern)(v1.value0))((function (v2) {
-                      return v2.name;
-                  })(Data_Newtype.un(newtypePackage)(Package)($45)));
+          var $$eval = function (v) {
+              return Control_Bind.discard(Control_Bind.discardUnit)(Halogen_Query_HalogenM.bindHalogenM)(Control_Monad_State_Class.put(Halogen_Query_HalogenM.monadStateHalogenM)(Data_Filterable.filter(Data_Filterable.filterableArray)(function ($44) {
+                  return Data_String.contains(Data_Newtype.wrap(Data_String.newtypePattern)(v.value0))((function (v1) {
+                      return v1.name;
+                  })(Data_Newtype.un(newtypePackage)(Package)($44)));
               })(packages$prime)))(function () {
-                  return Control_Applicative.pure(Halogen_Query_HalogenM.applicativeHalogenM)(v1.value1);
+                  return Control_Applicative.pure(Halogen_Query_HalogenM.applicativeHalogenM)(v.value1);
               });
           };
           return Halogen_Component.component(Halogen_HTML_Core.bifunctorHTML)({
