@@ -1194,7 +1194,7 @@
       "prelude"
     ],
     "repo": "https://github.com/joneshf/purescript-refs.git",
-    "version": "v3.0.0-erl3"
+    "version": "v3.0.0-erl4"
   },
   "run": {
     "dependencies": [
