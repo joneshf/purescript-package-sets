@@ -370,9 +370,9 @@
   },
   "erl-process": {
     "dependencies": [
-        "console",
-        "prelude",
-        "eff"
+      "console",
+      "prelude",
+      "eff"
     ],
     "repo": "https://github.com/purerl/purescript-erl-process.git",
     "version": "v1.0.0"
@@ -626,8 +626,7 @@
     "version": "v5.0.0"
   },
   "globals": {
-    "dependencies": [
-    ],
+    "dependencies": [],
     "repo": "https://github.com/purerl/purescript-globals.git",
     "version": "v3.0.0-erl1"
   },
@@ -938,7 +937,7 @@
     "repo": "https://github.com/purescript/purescript-maybe.git",
     "version": "v3.0.0"
   },
-   "media-types": {
+  "media-types": {
     "dependencies": [
       "arrays",
       "bifunctors",
