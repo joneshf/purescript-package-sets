@@ -1345,7 +1345,7 @@
       "prelude"
     ],
     "repo": "https://github.com/joneshf/purescript-st.git",
-    "version": "v3.0.0-erl4"
+    "version": "v3.0.0-erl5"
   },
   "strings": {
     "dependencies": [
