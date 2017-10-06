@@ -24,9 +24,11 @@ import Data.Functor ((<#>), (<$>))
 import Data.Maybe (Maybe(Nothing))
 import Data.NaturalTransformation (type (~>))
 import Data.Newtype (class Newtype, un, wrap)
+import Data.Record as Record
 import Data.Semigroup ((<>))
 import Data.StrMap (StrMap, foldMap)
 import Data.String (contains)
+import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
 import Data.URI (URI, printURI, runParseURI)
 import Data.Unit (Unit, unit)
@@ -41,6 +43,7 @@ import Network.HTTP.Affjax (AJAX)
 import Network.HTTP.Affjax as Affjax
 import Simple.JSON (class ReadForeign, readJSON)
 import Text.Parsing.StringParser (ParseError)
+import Type.Row (class RowLacks)
 
 main :: Eff (HA.HalogenEffects (ajax :: AJAX, console :: CONSOLE)) Unit
 main = HA.runHalogenAff do
@@ -70,10 +73,20 @@ loadData parent (PackageSetData x ) = do
   json <- _.response <$> Affjax.get (printURI x.set)
   let packages = case readJSON json of
         Right (PackageSetPackage y) ->
-          foldMap (\name { repo, version } -> [wrap { name, repo, version }]) y
+          foldMap (\name package -> [insertName name package]) y
         _ -> []
 
   for_ (container >>= fromElement) $ runUI (packageSet x.name packages) unit
+
+insertName
+  :: forall a r t
+  . Newtype t { name :: a | r }
+  => RowLacks "name" r
+  => a
+  -> { | r }
+  -> t
+insertName name package =
+  wrap $ Record.insert (SProxy :: SProxy "name") name package
 
 parsePackageSet :: PackageSetData String -> Either ParseError (PackageSetData URI)
 parsePackageSet (PackageSetData {name, set}) =
@@ -108,7 +121,8 @@ type State = Array Package
 
 newtype Package
   = Package
-    { name :: String
+    { dependencies :: Array String
+    , name :: String
     , repo :: String
     , version :: String
     }
@@ -187,14 +201,25 @@ renderName (SetName setName) =
     [ HH.text setName ]
 
 packageRow :: forall f. Package -> H.ComponentHTML f
-packageRow (Package { name, repo, version }) =
+packageRow (Package { dependencies, name, repo, version }) =
   HH.tr
     [ HP.class_ $ wrap "package" ]
     [ HH.td
       [ HP.class_ $ wrap "package-name" ]
-      [ HH.a
-        [ HP.href repo ]
-        [ HH.text name ]
+      [ HH.details
+        []
+        [ HH.summary
+          []
+          [ HH.a
+            [ HP.href repo ]
+            [ HH.text name ]
+          ]
+        , HH.div_
+          [ HH.text "Dependencies" ]
+        , HH.ul
+          [ HP.class_ $ wrap "dependencies" ]
+          (dependencies <#> \dep -> HH.li_ [HH.text dep])
+        ]
       ]
     , HH.td
       [ HP.class_ $ wrap "package-version" ]

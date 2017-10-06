@@ -28,6 +28,10 @@ a:hover {
   padding: 20px;
 }
 
+.dependencies {
+  padding-left: 18px;
+}
+
 .package {
   font-size: 18px;
   line-height: 32px;
