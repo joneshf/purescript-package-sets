@@ -98,7 +98,7 @@
       "refs"
     ],
     "repo": "https://github.com/joneshf/purescript-avar.git",
-    "version": "v2.0.1-erl1"
+    "version": "v2.0.1-erl2"
   },
   "bifunctors": {
     "dependencies": [
