@@ -11549,6 +11549,131 @@ var PS = {};
   exports["get"] = get;
 })(PS["Network.HTTP.Affjax"] = PS["Network.HTTP.Affjax"] || {});
 (function(exports) {
+    "use strict";
+  var Data_Function = PS["Data.Function"];
+  var Data_Functor = PS["Data.Functor"];
+  var Data_Newtype = PS["Data.Newtype"];
+  var Halogen = PS["Halogen"];
+  var Halogen_HTML = PS["Halogen.HTML"];
+  var Halogen_HTML_Core = PS["Halogen.HTML.Core"];
+  var Halogen_HTML_Elements = PS["Halogen.HTML.Elements"];
+  var Halogen_HTML_Properties = PS["Halogen.HTML.Properties"];        
+  var Package = function (x) {
+      return x;
+  };
+  var packageRow = function (v) {
+      return Halogen_HTML_Elements.tr([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package")) ])([ Halogen_HTML_Elements.td([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-name")) ])([ Halogen_HTML_Elements.details([  ])([ Halogen_HTML_Elements.summary([  ])([ Halogen_HTML_Elements.a([ Halogen_HTML_Properties.href(v.repo) ])([ Halogen_HTML_Core.text(v.name) ]) ]), Halogen_HTML_Elements.div_([ Halogen_HTML_Core.text("Dependencies") ]), Halogen_HTML_Elements.ul([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("dependencies")) ])(Data_Functor.mapFlipped(Data_Functor.functorArray)(v.dependencies)(function (dep) {
+          return Halogen_HTML_Elements.li_([ Halogen_HTML_Core.text(dep) ]);
+      })) ]) ]), Halogen_HTML_Elements.td([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-version")) ])([ Halogen_HTML_Core.text(v.version) ]) ]);
+  };
+  var renderResults = function (packages) {
+      return Halogen_HTML_Elements.table([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("packages")) ])([ Halogen_HTML_Elements.thead_([ Halogen_HTML_Elements.tr([ Halogen_HTML_Properties.classes([ Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package"), Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-header") ]) ])([ Halogen_HTML_Elements.th([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-name")) ])([ Halogen_HTML_Core.text("name") ]), Halogen_HTML_Elements.th([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-version")) ])([ Halogen_HTML_Core.text("version") ]) ]) ]), Halogen_HTML_Elements.tbody_(Data_Functor.map(Data_Functor.functorArray)(packageRow)(packages)) ]);
+  };
+  var newtypePackage = new Data_Newtype.Newtype(function (n) {
+      return n;
+  }, Package);
+  exports["Package"] = Package;
+  exports["renderResults"] = renderResults;
+  exports["newtypePackage"] = newtypePackage;
+})(PS["Package"] = PS["Package"] || {});
+(function(exports) {
+    "use strict";
+  var Control_Applicative = PS["Control.Applicative"];
+  var Control_Bind = PS["Control.Bind"];
+  var Control_Monad_State_Class = PS["Control.Monad.State.Class"];
+  var Control_Semigroupoid = PS["Control.Semigroupoid"];
+  var DOM_HTML_Indexed_InputType = PS["DOM.HTML.Indexed.InputType"];
+  var Data_Either = PS["Data.Either"];
+  var Data_Filterable = PS["Data.Filterable"];
+  var Data_Function = PS["Data.Function"];
+  var Data_Functor = PS["Data.Functor"];
+  var Data_Maybe = PS["Data.Maybe"];
+  var Data_NaturalTransformation = PS["Data.NaturalTransformation"];
+  var Data_Newtype = PS["Data.Newtype"];
+  var Data_Semigroup = PS["Data.Semigroup"];
+  var Data_String = PS["Data.String"];
+  var Data_URI = PS["Data.URI"];
+  var Data_URI_Types = PS["Data.URI.Types"];
+  var Data_Unit = PS["Data.Unit"];
+  var Data_Void = PS["Data.Void"];
+  var Halogen_Component = PS["Halogen.Component"];
+  var Halogen_HTML = PS["Halogen.HTML"];
+  var Halogen_HTML_Core = PS["Halogen.HTML.Core"];
+  var Halogen_HTML_Elements = PS["Halogen.HTML.Elements"];
+  var Halogen_HTML_Events = PS["Halogen.HTML.Events"];
+  var Halogen_HTML_Properties = PS["Halogen.HTML.Properties"];
+  var Halogen_Query_HalogenM = PS["Halogen.Query.HalogenM"];
+  var Package = PS["Package"];
+  var Text_Parsing_StringParser = PS["Text.Parsing.StringParser"];
+  var Search = (function () {
+      function Search(value0, value1) {
+          this.value0 = value0;
+          this.value1 = value1;
+      };
+      Search.create = function (value0) {
+          return function (value1) {
+              return new Search(value0, value1);
+          };
+      };
+      return Search;
+  })();
+  var Data = function (x) {
+      return x;
+  };
+  var search = function (str) {
+      return new Search(str, Data_Unit.unit);
+  };
+  var renderSearch = Halogen_HTML_Elements.input([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("search")), Halogen_HTML_Events.onValueInput(function ($22) {
+      return Control_Applicative.pure(Data_Maybe.applicativeMaybe)(search($22));
+  }), Halogen_HTML_Properties.placeholder("Search"), Halogen_HTML_Properties.type_(Halogen_HTML_Core.inputTypeIsProp)(DOM_HTML_Indexed_InputType.InputText.value) ]);
+  var renderName = function (v) {
+      return Halogen_HTML_Elements.h2([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("set")) ])([ Halogen_HTML_Core.text(v) ]);
+  };
+  var parseSetURI = function (v) {
+      var url = "https://cdn.rawgit.com/joneshf/purescript-package-sets/" + (v.set + "/packages.json");
+      return Data_Functor.mapFlipped(Data_Either.functorEither)(Data_URI.runParseURI(url))(function ($23) {
+          return Data((function (v1) {
+              return {
+                  name: v.name, 
+                  set: v1
+              };
+          })($23));
+      });
+  };
+  var packageSet = function (setName) {
+      return function (packages$prime) {
+          var render = function (packages) {
+              return Halogen_HTML_Elements.article_([ renderName(setName), renderSearch, Package.renderResults(packages) ]);
+          };
+          var receiver = function (v) {
+              return Data_Maybe.Nothing.value;
+          };
+          var initialState = function (v) {
+              return packages$prime;
+          };
+          var $$eval = function (v) {
+              return Control_Bind.discard(Control_Bind.discardUnit)(Halogen_Query_HalogenM.bindHalogenM)(Control_Monad_State_Class.put(Halogen_Query_HalogenM.monadStateHalogenM)(Data_Filterable.filter(Data_Filterable.filterableArray)(function ($24) {
+                  return Data_String.contains(Data_Newtype.wrap(Data_String.newtypePattern)(v.value0))((function (v1) {
+                      return v1.name;
+                  })(Data_Newtype.un(Package.newtypePackage)(Package.Package)($24)));
+              })(packages$prime)))(function () {
+                  return Control_Applicative.pure(Halogen_Query_HalogenM.applicativeHalogenM)(v.value1);
+              });
+          };
+          return Halogen_Component.component(Halogen_HTML_Core.bifunctorHTML)({
+              "eval": $$eval, 
+              initialState: initialState, 
+              receiver: receiver, 
+              render: render
+          });
+      };
+  };
+  exports["Data"] = Data;
+  exports["Search"] = Search;
+  exports["packageSet"] = packageSet;
+  exports["parseSetURI"] = parseSetURI;
+})(PS["PackageSet"] = PS["PackageSet"] || {});
+(function(exports) {
   // Generated by purs version 0.11.6
   "use strict";
   var Control_Applicative = PS["Control.Applicative"];
@@ -11659,83 +11784,58 @@ var PS = {};
 })(PS["Simple.JSON"] = PS["Simple.JSON"] || {});
 (function(exports) {
     "use strict";
-  var Control_Applicative = PS["Control.Applicative"];
+  var Data_Newtype = PS["Data.Newtype"];
+  var Data_StrMap = PS["Data.StrMap"];
+  var Data_Symbol = PS["Data.Symbol"];
+  var Simple_JSON = PS["Simple.JSON"];
+  var Type_Row = PS["Type.Row"];
+  var readForeignPackage = Simple_JSON.readStrMap(Simple_JSON.readRecord()(Simple_JSON.readFieldsCons(new Data_Symbol.IsSymbol(function () {
+      return "dependencies";
+  }))(Simple_JSON.readArray(Simple_JSON.readString))(Simple_JSON.readFieldsCons(new Data_Symbol.IsSymbol(function () {
+      return "repo";
+  }))(Simple_JSON.readString)(Simple_JSON.readFieldsCons(new Data_Symbol.IsSymbol(function () {
+      return "version";
+  }))(Simple_JSON.readString)(Simple_JSON.readFieldsNil)(Type_Row.rowLacks()()()(Type_Row.rowLacking))())(Type_Row.rowLacks()()()(Type_Row.rowLacking))())(Type_Row.rowLacks()()()(Type_Row.rowLacking))()));
+  exports["readForeignPackage"] = readForeignPackage;
+})(PS["Raw"] = PS["Raw"] || {});
+(function(exports) {
+    "use strict";
   var Control_Bind = PS["Control.Bind"];
   var Control_Monad_Aff = PS["Control.Monad.Aff"];
   var Control_Monad_Aff_Console = PS["Control.Monad.Aff.Console"];
   var Control_Monad_Eff = PS["Control.Monad.Eff"];
   var Control_Monad_Eff_Class = PS["Control.Monad.Eff.Class"];
   var Control_Monad_Eff_Console = PS["Control.Monad.Eff.Console"];
-  var Control_Monad_State_Class = PS["Control.Monad.State.Class"];
-  var Control_Semigroupoid = PS["Control.Semigroupoid"];
   var DOM_Classy_Element = PS["DOM.Classy.Element"];
   var DOM_HTML = PS["DOM.HTML"];
-  var DOM_HTML_Indexed_InputType = PS["DOM.HTML.Indexed.InputType"];
   var DOM_HTML_Types = PS["DOM.HTML.Types"];
   var DOM_HTML_Window = PS["DOM.HTML.Window"];
   var DOM_Node_NonElementParentNode = PS["DOM.Node.NonElementParentNode"];
   var DOM_Node_Types = PS["DOM.Node.Types"];
   var Data_Either = PS["Data.Either"];
-  var Data_Filterable = PS["Data.Filterable"];
   var Data_Foldable = PS["Data.Foldable"];
   var Data_Function = PS["Data.Function"];
   var Data_Functor = PS["Data.Functor"];
   var Data_Maybe = PS["Data.Maybe"];
   var Data_Monoid = PS["Data.Monoid"];
-  var Data_NaturalTransformation = PS["Data.NaturalTransformation"];
   var Data_Newtype = PS["Data.Newtype"];
   var Data_Record = PS["Data.Record"];
-  var Data_Semigroup = PS["Data.Semigroup"];
   var Data_StrMap = PS["Data.StrMap"];
-  var Data_String = PS["Data.String"];
   var Data_Symbol = PS["Data.Symbol"];
   var Data_Traversable = PS["Data.Traversable"];
   var Data_URI = PS["Data.URI"];
   var Data_Unit = PS["Data.Unit"];
-  var Data_Void = PS["Data.Void"];
-  var Halogen = PS["Halogen"];
   var Halogen_Aff = PS["Halogen.Aff"];
   var Halogen_Aff_Util = PS["Halogen.Aff.Util"];
-  var Halogen_Component = PS["Halogen.Component"];
-  var Halogen_HTML = PS["Halogen.HTML"];
-  var Halogen_HTML_Core = PS["Halogen.HTML.Core"];
-  var Halogen_HTML_Elements = PS["Halogen.HTML.Elements"];
-  var Halogen_HTML_Events = PS["Halogen.HTML.Events"];
-  var Halogen_HTML_Properties = PS["Halogen.HTML.Properties"];
-  var Halogen_Query_HalogenM = PS["Halogen.Query.HalogenM"];
   var Halogen_VDom_Driver = PS["Halogen.VDom.Driver"];
   var Network_HTTP_Affjax = PS["Network.HTTP.Affjax"];
   var Network_HTTP_Affjax_Response = PS["Network.HTTP.Affjax.Response"];
+  var Package = PS["Package"];
+  var PackageSet = PS["PackageSet"];
+  var Raw = PS["Raw"];
   var Simple_JSON = PS["Simple.JSON"];
   var Text_Parsing_StringParser = PS["Text.Parsing.StringParser"];
   var Type_Row = PS["Type.Row"];        
-  var SetVersion = function (x) {
-      return x;
-  };
-  var SetName = function (x) {
-      return x;
-  };
-  var Search = (function () {
-      function Search(value0, value1) {
-          this.value0 = value0;
-          this.value1 = value1;
-      };
-      Search.create = function (value0) {
-          return function (value1) {
-              return new Search(value0, value1);
-          };
-      };
-      return Search;
-  })();
-  var PackageSetPackage = function (x) {
-      return x;
-  };
-  var PackageSetData = function (x) {
-      return x;
-  };
-  var Package = function (x) {
-      return x;
-  };
   var sets = [ {
       name: "psc", 
       set: "psc-0.11.6"
@@ -11743,75 +11843,6 @@ var PS = {};
       name: "purerl", 
       set: "purerl-0.11.6"
   } ];
-  var search = function (str) {
-      return new Search(str, Data_Unit.unit);
-  };
-  var renderSearch = Halogen_HTML_Elements.input([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("search")), Halogen_HTML_Events.onValueInput(function ($41) {
-      return Control_Applicative.pure(Data_Maybe.applicativeMaybe)(search($41));
-  }), Halogen_HTML_Properties.placeholder("Search"), Halogen_HTML_Properties.type_(Halogen_HTML_Core.inputTypeIsProp)(DOM_HTML_Indexed_InputType.InputText.value) ]);
-  var renderName = function (v) {
-      return Halogen_HTML_Elements.h2([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("set")) ])([ Halogen_HTML_Core.text(v) ]);
-  };
-  var readForeignPackageSetPackage = Simple_JSON.readStrMap(Simple_JSON.readRecord()(Simple_JSON.readFieldsCons(new Data_Symbol.IsSymbol(function () {
-      return "dependencies";
-  }))(Simple_JSON.readArray(Simple_JSON.readString))(Simple_JSON.readFieldsCons(new Data_Symbol.IsSymbol(function () {
-      return "repo";
-  }))(Simple_JSON.readString)(Simple_JSON.readFieldsCons(new Data_Symbol.IsSymbol(function () {
-      return "version";
-  }))(Simple_JSON.readString)(Simple_JSON.readFieldsNil)(Type_Row.rowLacks()()()(Type_Row.rowLacking))())(Type_Row.rowLacks()()()(Type_Row.rowLacking))())(Type_Row.rowLacks()()()(Type_Row.rowLacking))()));
-  var parsePackageSet = function (v) {
-      var url = "https://cdn.rawgit.com/joneshf/purescript-package-sets/" + (v.set + "/packages.json");
-      return Data_Functor.mapFlipped(Data_Either.functorEither)(Data_URI.runParseURI(url))(function ($42) {
-          return PackageSetData((function (v1) {
-              return {
-                  name: v.name, 
-                  set: v1
-              };
-          })($42));
-      });
-  };
-  var packageRow = function (v) {
-      return Halogen_HTML_Elements.tr([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package")) ])([ Halogen_HTML_Elements.td([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-name")) ])([ Halogen_HTML_Elements.details([  ])([ Halogen_HTML_Elements.summary([  ])([ Halogen_HTML_Elements.a([ Halogen_HTML_Properties.href(v.repo) ])([ Halogen_HTML_Core.text(v.name) ]) ]), Halogen_HTML_Elements.div_([ Halogen_HTML_Core.text("Dependencies") ]), Halogen_HTML_Elements.ul([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("dependencies")) ])(Data_Functor.mapFlipped(Data_Functor.functorArray)(v.dependencies)(function (dep) {
-          return Halogen_HTML_Elements.li_([ Halogen_HTML_Core.text(dep) ]);
-      })) ]) ]), Halogen_HTML_Elements.td([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-version")) ])([ Halogen_HTML_Core.text(v.version) ]) ]);
-  };
-  var renderResults = function (packages) {
-      return Halogen_HTML_Elements.table([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("packages")) ])([ Halogen_HTML_Elements.thead_([ Halogen_HTML_Elements.tr([ Halogen_HTML_Properties.classes([ Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package"), Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-header") ]) ])([ Halogen_HTML_Elements.th([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-name")) ])([ Halogen_HTML_Core.text("name") ]), Halogen_HTML_Elements.th([ Halogen_HTML_Properties.class_(Data_Newtype.wrap(Halogen_HTML_Core.newtypeClassName)("package-version")) ])([ Halogen_HTML_Core.text("version") ]) ]) ]), Halogen_HTML_Elements.tbody_(Data_Functor.map(Data_Functor.functorArray)(packageRow)(packages)) ]);
-  };
-  var newtypePackageSetPackage = new Data_Newtype.Newtype(function (n) {
-      return n;
-  }, PackageSetPackage);
-  var newtypePackage = new Data_Newtype.Newtype(function (n) {
-      return n;
-  }, Package);
-  var packageSet = function (setName) {
-      return function (packages$prime) {
-          var render = function (packages) {
-              return Halogen_HTML_Elements.article_([ renderName(setName), renderSearch, renderResults(packages) ]);
-          };
-          var receiver = function (v) {
-              return Data_Maybe.Nothing.value;
-          };
-          var initialState = function (v) {
-              return packages$prime;
-          };
-          var $$eval = function (v) {
-              return Control_Bind.discard(Control_Bind.discardUnit)(Halogen_Query_HalogenM.bindHalogenM)(Control_Monad_State_Class.put(Halogen_Query_HalogenM.monadStateHalogenM)(Data_Filterable.filter(Data_Filterable.filterableArray)(function ($43) {
-                  return Data_String.contains(Data_Newtype.wrap(Data_String.newtypePattern)(v.value0))((function (v1) {
-                      return v1.name;
-                  })(Data_Newtype.un(newtypePackage)(Package)($43)));
-              })(packages$prime)))(function () {
-                  return Control_Applicative.pure(Halogen_Query_HalogenM.applicativeHalogenM)(v.value1);
-              });
-          };
-          return Halogen_Component.component(Halogen_HTML_Core.bifunctorHTML)({
-              "eval": $$eval, 
-              initialState: initialState, 
-              receiver: receiver, 
-              render: render
-          });
-      };
-  };
   var insertName = function (dictNewtype) {
       return function (dictRowLacks) {
           return function (name) {
@@ -11830,24 +11861,24 @@ var PS = {};
                   return v2.response;
               })(Network_HTTP_Affjax.get(Network_HTTP_Affjax_Response.responsableString)(Data_URI.printURI(v.set))))(function (v2) {
                   var packages = (function () {
-                      var v3 = Simple_JSON.readJSON(readForeignPackageSetPackage)(v2);
+                      var v3 = Simple_JSON.readJSON(Raw.readForeignPackage)(v2);
                       if (v3 instanceof Data_Either.Right) {
                           return Data_StrMap.foldMap(Data_Monoid.monoidArray)(function (name) {
                               return function ($$package) {
-                                  return [ insertName(newtypePackage)(Type_Row.rowLacks()()()(Type_Row.rowLacking))(name)($$package) ];
+                                  return [ insertName(Package.newtypePackage)(Type_Row.rowLacks()()()(Type_Row.rowLacking))(name)($$package) ];
                               };
                           })(v3.value0);
                       };
                       return [  ];
                   })();
-                  return Data_Foldable.for_(Control_Monad_Aff.applicativeAff)(Data_Foldable.foldableMaybe)(Control_Bind.bind(Data_Maybe.bindMaybe)(v1)(DOM_Classy_Element.fromElement(DOM_Classy_Element.isElementHTMLElement)))(Halogen_VDom_Driver.runUI(packageSet(v.name)(packages))(Data_Unit.unit));
+                  return Data_Foldable.for_(Control_Monad_Aff.applicativeAff)(Data_Foldable.foldableMaybe)(Control_Bind.bind(Data_Maybe.bindMaybe)(v1)(DOM_Classy_Element.fromElement(DOM_Classy_Element.isElementHTMLElement)))(Halogen_VDom_Driver.runUI(PackageSet.packageSet(v.name)(packages))(Data_Unit.unit));
               });
           });
       };
   };
   var main = Halogen_Aff_Util.runHalogenAff(Control_Bind.bind(Control_Monad_Aff.bindAff)(Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Control_Bind.bind(Control_Monad_Eff.bindEff)(DOM_HTML.window)(DOM_HTML_Window.document)))(function (v) {
       var parent = DOM_Node_Types.documentToNonElementParentNode(DOM_HTML_Types.htmlDocumentToDocument(v));
-      return Data_Either.either(Control_Monad_Aff_Console.logShow(Text_Parsing_StringParser.showParseError))(Data_Foldable.traverse_(Control_Monad_Aff.applicativeAff)(Data_Foldable.foldableArray)(loadData(parent)))(Data_Traversable.traverse(Data_Traversable.traversableArray)(Data_Either.applicativeEither)(parsePackageSet)(sets));
+      return Data_Either.either(Control_Monad_Aff_Console.logShow(Text_Parsing_StringParser.showParseError))(Data_Foldable.traverse_(Control_Monad_Aff.applicativeAff)(Data_Foldable.foldableArray)(loadData(parent)))(Data_Traversable.traverse(Data_Traversable.traversableArray)(Data_Either.applicativeEither)(PackageSet.parseSetURI)(sets));
   }));
   exports["main"] = main;
 })(PS["Main"] = PS["Main"] || {});
