@@ -29,6 +29,7 @@ import Network.HTTP.Affjax (AJAX)
 import Network.HTTP.Affjax as Affjax
 import PackageSet (packageSet)
 import PackageSet.Name as Name
+import PackageSet.Repo (Repo)
 import PackageSet.Version (Version)
 import Raw as Raw
 import Simple.JSON (readJSON)
@@ -62,7 +63,7 @@ loadData parent (Raw.Data x) = do
   json <- _.response <$> Affjax.get (printURI x.set)
   let packages = case readJSON json of
         Right (Raw.Package y) ->
-          foldMap (\name package -> [insertName name $ wrapVersion package]) y
+          foldMap (\name package -> [insertName name $ wrapRepo $ wrapVersion package]) y
         _ -> []
 
   for_ (container >>= fromElement) $ runUI (packageSet (Name.Set x.name) packages) unit
@@ -77,6 +78,9 @@ insertName
   -> t
 insertName name package =
   wrap $ Record.insert (SProxy :: SProxy "name") (wrap name) package
+
+wrapRepo :: forall r. { repo :: String | r } -> { repo :: Repo | r }
+wrapRepo = Record.modify (SProxy :: SProxy "repo") wrap
 
 wrapVersion :: forall r. { version :: String | r } -> { version :: Version | r }
 wrapVersion = Record.modify (SProxy :: SProxy "version") wrap

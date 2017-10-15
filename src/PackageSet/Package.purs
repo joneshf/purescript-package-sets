@@ -10,6 +10,8 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import PackageSet.Name as Name
+import PackageSet.Repo (Repo)
+import PackageSet.Repo as Repo
 import PackageSet.Version (Version)
 import PackageSet.Version as Version
 
@@ -17,7 +19,7 @@ newtype Package
   = Package
     { dependencies :: Array String
     , name :: Name.Package
-    , repo :: String
+    , repo :: Repo
     , version :: Version
     }
 
@@ -53,7 +55,7 @@ packageRow (Package { dependencies, name, repo, version }) =
         [ HH.summary
           []
           [ HH.a
-            [ HP.href repo ]
+            [ Repo.href repo ]
             [ Name.renderPackage name ]
           ]
         , HH.div_
