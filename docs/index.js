@@ -11962,19 +11962,19 @@ var PS = {};
       name: "purerl", 
       set: "purerl-0.11.6"
   } ];
-  var _version = Data_Symbol.SProxy.value;
-  var _repo = Data_Symbol.SProxy.value;
-  var _name = Data_Symbol.SProxy.value;
+  var s = Data_Symbol.SProxy.value;
   var convert = function (dictApplicative) {
       return function (name) {
           return function ($14) {
-              return Control_Applicative.pure(dictApplicative)(Data_Newtype.wrap(PackageSet_Package.newtypePackage)(Data_Record.insert(new Data_Symbol.IsSymbol(function () {
-                  return "name";
-              }))(Type_Row.rowLacks()()()(Type_Row.rowLacking))()(_name)(Data_Newtype.wrap(PackageSet_Name.newtypePackage)(name))(Data_Record.modify(new Data_Symbol.IsSymbol(function () {
-                  return "repo";
-              }))()()(_repo)(Data_Newtype.wrap(PackageSet_Repo.newtypeRepo))(Data_Record.modify(new Data_Symbol.IsSymbol(function () {
+              return Control_Applicative.pure(dictApplicative)(Data_Newtype.wrap(PackageSet_Package.newtypePackage)(Data_Record.modify(new Data_Symbol.IsSymbol(function () {
                   return "version";
-              }))()()(_version)(Data_Newtype.wrap(PackageSet_Version.newtypeVersion))($14)))));
+              }))()()(s)(Data_Newtype.wrap(PackageSet_Version.newtypeVersion))(Data_Record.modify(new Data_Symbol.IsSymbol(function () {
+                  return "repo";
+              }))()()(s)(Data_Newtype.wrap(PackageSet_Repo.newtypeRepo))(Data_Record.modify(new Data_Symbol.IsSymbol(function () {
+                  return "name";
+              }))()()(s)(Data_Newtype.wrap(PackageSet_Name.newtypePackage))(Data_Record.insert(new Data_Symbol.IsSymbol(function () {
+                  return "name";
+              }))(Type_Row.rowLacks()()()(Type_Row.rowLacking))()(s)(name)($14))))));
           };
       };
   };

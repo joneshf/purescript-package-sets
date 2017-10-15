@@ -71,16 +71,12 @@ convert :: forall f. Applicative f => String -> Raw.Package -> f Package
 convert name =
   pure
     <<< wrap
-    <<< Record.modify _version wrap
-    <<< Record.modify _repo wrap
-    <<< Record.modify _name wrap
-    <<< Record.insert _name name
+    <<< Record.modify (s :: S "version") wrap
+    <<< Record.modify (s :: S "repo") wrap
+    <<< Record.modify (s :: S "name") wrap
+    <<< Record.insert (s :: S "name") name
 
-_name :: SProxy "name"
-_name = SProxy
+type S = SProxy
 
-_repo :: SProxy "repo"
-_repo = SProxy
-
-_version :: SProxy "version"
-_version = SProxy
+s :: forall l. SProxy l
+s = SProxy
