@@ -20,7 +20,7 @@ import Halogen.Component as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import PackageSet.Name (Name, renderName)
+import PackageSet.Name as Name
 import PackageSet.Package (Package(..), renderResults)
 
 newtype Version
@@ -36,14 +36,14 @@ type Message = Void
 
 type State = Array Package
 
-packageSet :: forall m. Name -> State -> H.Component HH.HTML Query Unit Message m
+packageSet :: forall m. Name.Set -> State -> H.Component HH.HTML Query Unit Message m
 packageSet setName packages' =
   H.component { eval, initialState, receiver, render }
   where
   eval :: Query ~> H.ComponentDSL State Query Message m
   eval = case _ of
     Search str x -> do
-      put $ filter (contains (wrap str) <<< _.name <<< un Package) packages'
+      put $ filter (contains (wrap str) <<< un Name.Package <<< _.name <<< un Package) packages'
       pure x
 
   initialState :: forall a. a -> State
@@ -55,7 +55,7 @@ packageSet setName packages' =
   render :: State -> H.ComponentHTML Query
   render packages =
     HH.article_
-      [ renderName setName
+      [ Name.renderSet setName
       , renderSearch
       , renderResults packages
       ]

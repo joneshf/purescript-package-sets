@@ -28,7 +28,7 @@ import Halogen.VDom.Driver (runUI)
 import Network.HTTP.Affjax (AJAX)
 import Network.HTTP.Affjax as Affjax
 import PackageSet (packageSet)
-import PackageSet.Name (Name(..))
+import PackageSet.Name as Name
 import Raw as Raw
 import Simple.JSON (readJSON)
 import Type.Row (class RowLacks)
@@ -64,14 +64,15 @@ loadData parent (Raw.Data x) = do
           foldMap (\name package -> [insertName name package]) y
         _ -> []
 
-  for_ (container >>= fromElement) $ runUI (packageSet (Name x.name) packages) unit
+  for_ (container >>= fromElement) $ runUI (packageSet (Name.Set x.name) packages) unit
 
 insertName
-  :: forall a r t
-  . Newtype t { name :: a | r }
+  :: forall a b r t
+  . Newtype b a
+  => Newtype t { name :: b | r }
   => RowLacks "name" r
   => a
   -> { | r }
   -> t
 insertName name package =
-  wrap $ Record.insert (SProxy :: SProxy "name") name package
+  wrap $ Record.insert (SProxy :: SProxy "name") (wrap name) package

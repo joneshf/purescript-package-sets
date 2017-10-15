@@ -1,19 +1,31 @@
 module PackageSet.Name
-  ( Name(..)
-  , renderName
+  ( Package(..)
+  , renderPackage
+  , Set(..)
+  , renderSet
   ) where
 
 import Data.Function (($))
-import Data.Newtype (wrap)
+import Data.Newtype (class Newtype, wrap)
 import Halogen.Component as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 
-newtype Name
-  = Name String
+newtype Package
+  = Package String
 
-renderName :: forall f. Name -> H.ComponentHTML f
-renderName (Name setName) =
+derive instance newtypePackage :: Newtype Package _
+
+renderPackage :: forall f. Package -> H.ComponentHTML f
+renderPackage (Package name) = HH.text name
+
+newtype Set
+  = Set String
+
+derive instance newtypeSet :: Newtype Set _
+
+renderSet :: forall f. Set -> H.ComponentHTML f
+renderSet (Set name) =
   HH.h2
     [ HP.class_ $ wrap "set" ]
-    [ HH.text setName ]
+    [ HH.text name ]

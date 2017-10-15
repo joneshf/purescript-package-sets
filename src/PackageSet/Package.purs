@@ -9,11 +9,12 @@ import Data.Newtype (class Newtype, wrap)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
+import PackageSet.Name as Name
 
 newtype Package
   = Package
     { dependencies :: Array String
-    , name :: String
+    , name :: Name.Package
     , repo :: String
     , version :: String
     }
@@ -51,7 +52,7 @@ packageRow (Package { dependencies, name, repo, version }) =
           []
           [ HH.a
             [ HP.href repo ]
-            [ HH.text name ]
+            [ Name.renderPackage name ]
           ]
         , HH.div_
           [ HH.text "Dependencies" ]
