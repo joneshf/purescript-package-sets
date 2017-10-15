@@ -4,7 +4,7 @@ module PackageSet.Package
   ) where
 
 import Data.Function (($))
-import Data.Functor ((<#>), (<$>))
+import Data.Functor ((<$>))
 import Data.Newtype (class Newtype, wrap)
 import Halogen as H
 import Halogen.HTML as HH
@@ -17,7 +17,7 @@ import PackageSet.Version as Version
 
 newtype Package
   = Package
-    { dependencies :: Array String
+    { dependencies :: Array Name.Package
     , name :: Name.Package
     , repo :: Repo
     , version :: Version
@@ -62,10 +62,13 @@ packageRow (Package { dependencies, name, repo, version }) =
           [ HH.text "Dependencies" ]
         , HH.ul
           [ HP.class_ $ wrap "dependencies" ]
-          (dependencies <#> \dep -> HH.li_ [HH.text dep])
+          (renderDependency <$> dependencies)
         ]
       ]
     , HH.td
       [ HP.class_ $ wrap "package-version" ]
       [ Version.render version ]
     ]
+
+renderDependency :: forall f. Name.Package -> H.ComponentHTML f
+renderDependency dep = HH.li_ [ Name.renderPackage dep ]

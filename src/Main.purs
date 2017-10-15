@@ -14,13 +14,13 @@ import DOM.HTML.Types (htmlDocumentToDocument)
 import DOM.HTML.Window (document)
 import DOM.Node.NonElementParentNode (getElementById)
 import DOM.Node.Types (ElementId(..), NonElementParentNode, documentToNonElementParentNode)
-import Data.Either (Either(..), either)
-import Data.Foldable (for_, traverse_)
+import Data.Either (either)
+import Data.Foldable (foldMap, for_, traverse_)
 import Data.Function (($))
-import Data.Functor ((<$>))
+import Data.Functor (map, (<$>))
 import Data.Newtype (wrap)
 import Data.Record as Record
-import Data.StrMap (foldMap)
+import Data.StrMap as StrMap
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
 import Data.URI (URI, printURI)
@@ -61,9 +61,7 @@ loadData
 loadData parent (Raw.Data x) = do
   container <- liftEff $ getElementById (ElementId "sets") parent
   json <- _.response <$> Affjax.get (printURI x.set)
-  let packages = case readJSON json of
-        Right (Raw.PackageSet y) -> foldMap convert y
-        _ -> []
+  let packages = foldMap (StrMap.foldMap convert) $ readJSON json
 
   for_ (container >>= fromElement) $ runUI (packageSet (Name.Set x.name) packages) unit
 
@@ -71,12 +69,8 @@ convert :: forall f. Applicative f => String -> Raw.Package -> f Package
 convert name =
   pure
     <<< wrap
-    <<< Record.modify (s :: S "version") wrap
-    <<< Record.modify (s :: S "repo") wrap
-    <<< Record.modify (s :: S "name") wrap
-    <<< Record.insert (s :: S "name") name
-
-type S = SProxy
-
-s :: forall l. SProxy l
-s = SProxy
+    <<< Record.modify (SProxy :: SProxy "version") wrap
+    <<< Record.modify (SProxy :: SProxy "repo") wrap
+    <<< Record.modify (SProxy :: SProxy "dependencies") (map wrap)
+    <<< Record.modify (SProxy :: SProxy "name") wrap
+    <<< Record.insert (SProxy :: SProxy "name") name
