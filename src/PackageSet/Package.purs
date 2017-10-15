@@ -10,13 +10,15 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import PackageSet.Name as Name
+import PackageSet.Version (Version)
+import PackageSet.Version as Version
 
 newtype Package
   = Package
     { dependencies :: Array String
     , name :: Name.Package
     , repo :: String
-    , version :: String
+    , version :: Version
     }
 
 derive instance newtypePackage :: Newtype Package _
@@ -63,5 +65,5 @@ packageRow (Package { dependencies, name, repo, version }) =
       ]
     , HH.td
       [ HP.class_ $ wrap "package-version" ]
-      [ HH.text version ]
+      [ Version.render version ]
     ]

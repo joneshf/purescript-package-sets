@@ -23,9 +23,6 @@ import Halogen.HTML.Properties as HP
 import PackageSet.Name as Name
 import PackageSet.Package (Package(..), renderResults)
 
-newtype Version
-  = Version String
-
 data Query a
   = Search String a
 
