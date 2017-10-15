@@ -1,16 +1,13 @@
 module Raw
   ( Data(..)
   , Package(..)
-  , parseSetURI
   ) where
 
 import Control.Semigroupoid ((<<<))
-import Data.Either (Either)
-import Data.Functor (class Functor, (<#>))
-import Data.Semigroup ((<>))
-import Data.URI (runParseURI)
-import Data.URI.Types (URI)
-import Text.Parsing.StringParser (ParseError)
+import Data.Foldable (class Foldable, foldlDefault, foldrDefault)
+import Data.Functor (class Functor, (<$>))
+import Data.Newtype (class Newtype, unwrap)
+import Data.Traversable (class Traversable, sequenceDefault)
 
 type Package =
   { dependencies :: Array String
@@ -26,11 +23,13 @@ newtype Data set
 
 derive instance functorData :: Functor Data
 
-parseSetURI :: Data String -> Either ParseError (Data URI)
-parseSetURI (Data {name, set}) =
-  runParseURI url <#> Data <<< {name, set: _}
-  where
-  url =
-    "https://cdn.rawgit.com/joneshf/purescript-package-sets/"
-      <> set
-      <> "/packages.json"
+derive instance newtypeData :: Newtype (Data a) _
+
+instance foldableData :: Foldable Data where
+  foldr f = foldrDefault f
+  foldl f = foldlDefault f
+  foldMap f = f <<< _.set <<< unwrap
+
+instance traversableData :: Traversable Data where
+  traverse f (Data x) = Data <<< x { set = _ } <$> f x.set
+  sequence = sequenceDefault

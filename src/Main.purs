@@ -14,16 +14,17 @@ import DOM.HTML.Types (htmlDocumentToDocument)
 import DOM.HTML.Window (document)
 import DOM.Node.NonElementParentNode (getElementById)
 import DOM.Node.Types (ElementId(..), NonElementParentNode, documentToNonElementParentNode)
-import Data.Either (either)
+import Data.Either (Either, either)
 import Data.Foldable (foldMap, for_, traverse_)
 import Data.Function (($))
 import Data.Functor (map, (<$>))
 import Data.Newtype (wrap)
 import Data.Record as Record
+import Data.Semigroup ((<>))
 import Data.StrMap as StrMap
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
-import Data.URI (URI, printURI)
+import Data.URI (URI, printURI, runParseURI)
 import Data.Unit (Unit, unit)
 import Halogen.Aff as HA
 import Halogen.VDom.Driver (runUI)
@@ -34,12 +35,13 @@ import PackageSet.Name as Name
 import PackageSet.Package (Package)
 import Raw as Raw
 import Simple.JSON (readJSON)
+import Text.Parsing.StringParser (ParseError)
 
 main :: Eff (HA.HalogenEffects (ajax :: AJAX, console :: CONSOLE)) Unit
 main = HA.runHalogenAff do
   doc <- liftEff $ window >>= document
   let parent = documentToNonElementParentNode $ htmlDocumentToDocument doc
-  either logShow (traverse_ $ loadData parent) $ traverse Raw.parseSetURI sets
+  either logShow (traverse_ $ loadData parent) $ traverse (traverse parseSetURI) sets
 
 sets :: Array (Raw.Data String)
 sets =
@@ -74,3 +76,11 @@ convert name =
     <<< Record.modify (SProxy :: SProxy "dependencies") (map wrap)
     <<< Record.modify (SProxy :: SProxy "name") wrap
     <<< Record.insert (SProxy :: SProxy "name") name
+
+parseSetURI :: String -> Either ParseError URI
+parseSetURI set = runParseURI url
+  where
+  url =
+    "https://cdn.rawgit.com/joneshf/purescript-package-sets/"
+      <> set
+      <> "/packages.json"
