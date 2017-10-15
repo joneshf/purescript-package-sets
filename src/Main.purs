@@ -7,6 +7,7 @@ import Control.Monad.Aff.Console (logShow)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console (CONSOLE)
+import Control.Semigroupoid ((<<<))
 import DOM.Classy.Element (fromElement)
 import DOM.HTML (window)
 import DOM.HTML.Types (htmlDocumentToDocument)
@@ -17,7 +18,7 @@ import Data.Either (Either(..), either)
 import Data.Foldable (for_, traverse_)
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.Newtype (class Newtype, wrap)
+import Data.Newtype (wrap)
 import Data.Record as Record
 import Data.StrMap (foldMap)
 import Data.Symbol (SProxy(..))
@@ -31,11 +32,8 @@ import Network.HTTP.Affjax as Affjax
 import PackageSet (packageSet)
 import PackageSet.Name as Name
 import PackageSet.Package (Package)
-import PackageSet.Repo (Repo)
-import PackageSet.Version (Version)
 import Raw as Raw
 import Simple.JSON (readJSON)
-import Type.Row (class RowLacks)
 
 main :: Eff (HA.HalogenEffects (ajax :: AJAX, console :: CONSOLE)) Unit
 main = HA.runHalogenAff do
@@ -70,25 +68,19 @@ loadData parent (Raw.Data x) = do
   for_ (container >>= fromElement) $ runUI (packageSet (Name.Set x.name) packages) unit
 
 convert :: forall f. Applicative f => String -> Raw.Package -> f Package
-convert name package =
+convert name =
   pure
-    $ insertName name
-    $ wrapRepo
-    $ wrapVersion package
+    <<< wrap
+    <<< Record.modify _version wrap
+    <<< Record.modify _repo wrap
+    <<< Record.modify _name wrap
+    <<< Record.insert _name name
 
-insertName
-  :: forall a b r t
-  . Newtype b a
-  => Newtype t { name :: b | r }
-  => RowLacks "name" r
-  => a
-  -> { | r }
-  -> t
-insertName name package =
-  wrap $ Record.insert (SProxy :: SProxy "name") (wrap name) package
+_name :: SProxy "name"
+_name = SProxy
 
-wrapRepo :: forall r. { repo :: String | r } -> { repo :: Repo | r }
-wrapRepo = Record.modify (SProxy :: SProxy "repo") wrap
+_repo :: SProxy "repo"
+_repo = SProxy
 
-wrapVersion :: forall r. { version :: String | r } -> { version :: Version | r }
-wrapVersion = Record.modify (SProxy :: SProxy "version") wrap
+_version :: SProxy "version"
+_version = SProxy
