@@ -7,3 +7,6 @@
 /.psc*
 /.purs*
 /.psa*
+
+Makefile
+update_and_verify.sh
