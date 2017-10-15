@@ -1,5 +1,6 @@
 module Main (main) where
 
+import Control.Applicative (class Applicative, pure)
 import Control.Bind (bind, (>>=))
 import Control.Monad.Aff (Aff)
 import Control.Monad.Aff.Console (logShow)
@@ -29,6 +30,7 @@ import Network.HTTP.Affjax (AJAX)
 import Network.HTTP.Affjax as Affjax
 import PackageSet (packageSet)
 import PackageSet.Name as Name
+import PackageSet.Package (Package)
 import PackageSet.Repo (Repo)
 import PackageSet.Version (Version)
 import Raw as Raw
@@ -62,11 +64,17 @@ loadData parent (Raw.Data x) = do
   container <- liftEff $ getElementById (ElementId "sets") parent
   json <- _.response <$> Affjax.get (printURI x.set)
   let packages = case readJSON json of
-        Right (Raw.Package y) ->
-          foldMap (\name package -> [insertName name $ wrapRepo $ wrapVersion package]) y
+        Right (Raw.PackageSet y) -> foldMap convert y
         _ -> []
 
   for_ (container >>= fromElement) $ runUI (packageSet (Name.Set x.name) packages) unit
+
+convert :: forall f. Applicative f => String -> Raw.Package -> f Package
+convert name package =
+  pure
+    $ insertName name
+    $ wrapRepo
+    $ wrapVersion package
 
 insertName
   :: forall a b r t

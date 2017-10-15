@@ -1,6 +1,7 @@
 module Raw
   ( Data(..)
   , Package(..)
+  , PackageSet(..)
   , parseSetURI
   ) where
 
@@ -15,17 +16,17 @@ import Data.URI.Types (URI)
 import Simple.JSON (class ReadForeign)
 import Text.Parsing.StringParser (ParseError)
 
-newtype Package
-  = Package
-    (StrMap
-      { dependencies :: Array String
-      , repo :: String
-      , version :: String
-      }
-    )
+newtype PackageSet
+  = PackageSet (StrMap Package)
 
-derive instance newtypePackage :: Newtype Package _
-derive newtype instance readForeignPackage :: ReadForeign Package
+type Package =
+  { dependencies :: Array String
+  , repo :: String
+  , version :: String
+  }
+
+derive instance newtypePackageSet :: Newtype PackageSet _
+derive newtype instance readForeignPackageSet :: ReadForeign PackageSet
 
 newtype Data set
   = Data
