@@ -1,4 +1,4 @@
-module Package
+module PackageSet.Package
   ( Package(..)
   , renderResults
   ) where

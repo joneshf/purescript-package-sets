@@ -27,8 +27,8 @@ import Halogen.Aff as HA
 import Halogen.VDom.Driver (runUI)
 import Network.HTTP.Affjax (AJAX)
 import Network.HTTP.Affjax as Affjax
-import PackageSet (packageSet, parseSetURI)
-import PackageSet as PackageSet
+import PackageSet (packageSet)
+import PackageSet.Name (Name(..))
 import Raw as Raw
 import Simple.JSON (readJSON)
 import Type.Row (class RowLacks)
@@ -37,16 +37,16 @@ main :: Eff (HA.HalogenEffects (ajax :: AJAX, console :: CONSOLE)) Unit
 main = HA.runHalogenAff do
   doc <- liftEff $ window >>= document
   let parent = documentToNonElementParentNode $ htmlDocumentToDocument doc
-  either logShow (traverse_ $ loadData parent) $ traverse parseSetURI sets
+  either logShow (traverse_ $ loadData parent) $ traverse Raw.parseSetURI sets
 
-sets :: Array (PackageSet.Data String)
+sets :: Array (Raw.Data String)
 sets =
-  [ PackageSet.Data
-    { name: PackageSet.Name "psc"
+  [ Raw.Data
+    { name: "psc"
     , set: "psc-0.11.6"
     }
-  , PackageSet.Data
-    { name: PackageSet.Name "purerl"
+  , Raw.Data
+    { name: "purerl"
     , set: "purerl-0.11.6"
     }
   ]
@@ -54,9 +54,9 @@ sets =
 loadData
   :: forall e
   . NonElementParentNode
-  -> PackageSet.Data URI
+  -> Raw.Data URI
   -> Aff (HA.HalogenEffects (ajax :: AJAX | e)) Unit
-loadData parent (PackageSet.Data x) = do
+loadData parent (Raw.Data x) = do
   container <- liftEff $ getElementById (ElementId "sets") parent
   json <- _.response <$> Affjax.get (printURI x.set)
   let packages = case readJSON json of
@@ -64,7 +64,7 @@ loadData parent (PackageSet.Data x) = do
           foldMap (\name package -> [insertName name package]) y
         _ -> []
 
-  for_ (container >>= fromElement) $ runUI (packageSet x.name packages) unit
+  for_ (container >>= fromElement) $ runUI (packageSet (Name x.name) packages) unit
 
 insertName
   :: forall a r t
