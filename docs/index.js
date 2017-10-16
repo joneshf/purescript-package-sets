@@ -9884,7 +9884,7 @@ var PS = {};
   var PackageSet_Version = PS["PackageSet.Version"];
   var SQLJS = PS["SQLJS"];
   var Simple_JSON = PS["Simple.JSON"];        
-  var sqliteURI = "https://cdn.rawgit.com/joneshf/purescript-package-sets/package_sets.sqlite3";
+  var sqliteURI = "https://cdn.rawgit.com/joneshf/purescript-package-sets/master/package_sets.sqlite3";
   var main = Halogen_Aff_Util.runHalogenAff(Control_Bind.bind(Control_Monad_Aff.bindAff)(Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Control_Bind.bind(Control_Monad_Eff.bindEff)(DOM_HTML.window)(DOM_HTML_Window.document)))(function (v) {
       var parent = DOM_Node_Types.documentToNonElementParentNode(DOM_HTML_Types.htmlDocumentToDocument(v));
       return Control_Bind.bind(Control_Monad_Aff.bindAff)(Network_HTTP_Affjax.get(Network_HTTP_Affjax_Response.responsableArrayBuffer)(sqliteURI))(function (v1) {

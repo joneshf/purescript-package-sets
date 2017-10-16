@@ -70,4 +70,4 @@ main = HA.runHalogenAff do
 
 sqliteURI :: String
 sqliteURI =
-  "https://cdn.rawgit.com/joneshf/purescript-package-sets/package_sets.sqlite3"
+  "https://cdn.rawgit.com/joneshf/purescript-package-sets/master/package_sets.sqlite3"
