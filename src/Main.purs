@@ -1,86 +1,73 @@
 module Main (main) where
 
-import Control.Applicative (class Applicative, pure)
+import Control.Applicative (pure)
 import Control.Bind (bind, (>>=))
-import Control.Monad.Aff (Aff)
-import Control.Monad.Aff.Console (logShow)
+import Control.Monad.Aff (liftEff')
+import Control.Monad.Aff.Console (log, logShow)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console (CONSOLE)
+import Control.Monad.Except (runExcept)
 import Control.Semigroupoid ((<<<))
 import DOM.Classy.Element (fromElement)
 import DOM.HTML (window)
 import DOM.HTML.Types (htmlDocumentToDocument)
 import DOM.HTML.Window (document)
 import DOM.Node.NonElementParentNode (getElementById)
-import DOM.Node.Types (ElementId(..), NonElementParentNode, documentToNonElementParentNode)
-import Data.Either (Either, either)
-import Data.Foldable (foldMap, for_, traverse_)
+import DOM.Node.Types (ElementId(ElementId), documentToNonElementParentNode)
+import Data.ArrayBuffer.DataView (whole)
+import Data.ArrayBuffer.Typed (asUint8Array)
+import Data.Either (Either(Right, Left))
+import Data.Foldable (for_, traverse_)
+import Data.Foreign (ForeignError(..), fail, renderForeignError)
 import Data.Function (($))
-import Data.Functor (map, (<$>))
+import Data.Functor ((<$>))
+import Data.Map as Map
 import Data.Newtype (wrap)
-import Data.Record as Record
 import Data.Semigroup ((<>))
-import Data.StrMap as StrMap
-import Data.Symbol (SProxy(..))
-import Data.Traversable (traverse)
-import Data.URI (URI, printURI, runParseURI)
+import Data.Traversable (for)
+import Data.Tuple (Tuple(..))
 import Data.Unit (Unit, unit)
 import Halogen.Aff as HA
 import Halogen.VDom.Driver (runUI)
 import Network.HTTP.Affjax (AJAX)
 import Network.HTTP.Affjax as Affjax
 import PackageSet (packageSet)
-import PackageSet.Name as Name
-import PackageSet.Package (Package)
-import Raw as Raw
-import Simple.JSON (readJSON)
-import Text.Parsing.StringParser (ParseError)
+import PackageSet.Package (Package(..))
+import SQLJS (SQLJS)
+import SQLJS as SQLJS
+import Simple.JSON (read)
 
-main :: Eff (HA.HalogenEffects (ajax :: AJAX, console :: CONSOLE)) Unit
+main :: Eff (HA.HalogenEffects (ajax :: AJAX, console :: CONSOLE, sqljs :: SQLJS)) Unit
 main = HA.runHalogenAff do
   doc <- liftEff $ window >>= document
   let parent = documentToNonElementParentNode $ htmlDocumentToDocument doc
-  either logShow (traverse_ $ loadData parent) $ traverse (traverse parseSetURI) sets
+  { response } <- Affjax.get sqliteURI
+  result <- liftEff' do
+    db <- SQLJS.new $ asUint8Array $ whole response
+    results <- SQLJS.exec "SELECT name, repo, package_set, version FROM package;" db
+    pure $ runExcept case results of
+      [{ values }] ->
+        for values case _ of
+          [name', repo', set', version'] -> do
+            let dependencies = []
+            name <- wrap <$> read name'
+            repo <- wrap <$> read repo'
+            set <- wrap <$> read set'
+            version <- wrap <$> read version'
+            pure $ Tuple set [Package { dependencies, name, repo, version }]
+          _ -> fail $ ForeignError "expected four fields"
+      _ -> fail $ ForeignError "expected one result"
+  case result of
+    Left error -> logShow error
+    Right (Left errors) -> traverse_ (log <<< renderForeignError) errors
+    Right (Right packages') -> do
+      let packageSets = Map.fromFoldableWith (<>) packages'
+      container <- liftEff $ getElementById (ElementId "sets") parent
+      for_ (container >>= fromElement) \el ->
+        for_ (Map.toUnfoldable packageSets :: Array _) \(Tuple name packages) ->
+          runUI (packageSet name packages) unit el
 
-sets :: Array (Raw.Data String)
-sets =
-  [ Raw.Data
-    { name: "psc"
-    , set: "psc-0.11.6"
-    }
-  , Raw.Data
-    { name: "purerl"
-    , set: "purerl-0.11.6"
-    }
-  ]
-
-loadData
-  :: forall e
-  . NonElementParentNode
-  -> Raw.Data URI
-  -> Aff (HA.HalogenEffects (ajax :: AJAX | e)) Unit
-loadData parent (Raw.Data x) = do
-  container <- liftEff $ getElementById (ElementId "sets") parent
-  json <- _.response <$> Affjax.get (printURI x.set)
-  let packages = foldMap (StrMap.foldMap convert) $ readJSON json
-
-  for_ (container >>= fromElement) $ runUI (packageSet (Name.Set x.name) packages) unit
-
-convert :: forall f. Applicative f => String -> Raw.Package -> f Package
-convert name =
-  pure
-    <<< wrap
-    <<< Record.modify (SProxy :: SProxy "version") wrap
-    <<< Record.modify (SProxy :: SProxy "repo") wrap
-    <<< Record.modify (SProxy :: SProxy "dependencies") (map wrap)
-    <<< Record.modify (SProxy :: SProxy "name") wrap
-    <<< Record.insert (SProxy :: SProxy "name") name
-
-parseSetURI :: String -> Either ParseError URI
-parseSetURI set = runParseURI url
-  where
-  url =
-    "https://cdn.rawgit.com/joneshf/purescript-package-sets/"
-      <> set
-      <> "/packages.json"
+sqliteURI :: String
+sqliteURI =
+  "https://cdn.rawgit.com/joneshf/purescript-package-sets/package_sets.sqlite3"
