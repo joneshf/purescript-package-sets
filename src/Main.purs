@@ -35,30 +35,28 @@ import Network.HTTP.Affjax (AJAX)
 import Network.HTTP.Affjax as Affjax
 import PackageSet (packageSet)
 import PackageSet.Package (Package(..))
-import SQLJS (SQLJS)
 import SQLJS as SQLJS
+import SQLJS.Typed (SQL(..))
+import SQLJS.Typed as SQLJS.Typed
 import Simple.JSON (read)
 
-main :: Eff (HA.HalogenEffects (ajax :: AJAX, console :: CONSOLE, sqljs :: SQLJS)) Unit
+main :: Eff (HA.HalogenEffects (SQLJS.Effects (ajax :: AJAX, console :: CONSOLE))) Unit
 main = HA.runHalogenAff do
   doc <- liftEff $ window >>= document
   let parent = documentToNonElementParentNode $ htmlDocumentToDocument doc
   { response } <- Affjax.get sqliteURI
   result <- liftEff' do
     db <- SQLJS.new $ asUint8Array $ whole response
-    results <- SQLJS.exec packageSQL db
-    pure $ runExcept case results of
-      [{ values }] ->
-        for values case _ of
-          [name', repo', set', version'] -> do
-            let dependencies = []
-            name <- wrap <$> read name'
-            repo <- wrap <$> read repo'
-            set <- wrap <$> read set'
-            version <- wrap <$> read version'
-            pure $ Tuple set [Package { dependencies, name, repo, version }]
-          _ -> fail $ ForeignError "expected four fields"
-      _ -> fail $ ForeignError "expected one result"
+    { values } <- SQLJS.Typed.queryResult packageSQL db
+    pure $ runExcept $ for values case _ of
+      [name', repo', set', version'] -> do
+        let dependencies = []
+        name <- wrap <$> read name'
+        repo <- wrap <$> read repo'
+        set <- wrap <$> read set'
+        version <- wrap <$> read version'
+        pure $ Tuple set [Package { dependencies, name, repo, version }]
+      _ -> fail $ ForeignError "expected four fields"
   case result of
     Left error -> logShow error
     Right (Left errors) -> traverse_ (log <<< renderForeignError) errors
@@ -69,8 +67,8 @@ main = HA.runHalogenAff do
         for_ (Map.toUnfoldable packageSets :: Array _) \(Tuple name packages) ->
           runUI (packageSet name (sortWith (_.name <<< un Package) packages)) unit el
 
-packageSQL :: String
-packageSQL =
+packageSQL :: SQL
+packageSQL = SQL
   """
   SELECT name, repo, package_set, version
   FROM package;
