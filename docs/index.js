@@ -1932,7 +1932,14 @@ var PS = {};
   };
   var runExceptT = function (v) {
       return v;
-  }; 
+  };          
+  var monadTransExceptT = new Control_Monad_Trans_Class.MonadTrans(function (dictMonad) {
+      return function (m) {
+          return Control_Bind.bind(dictMonad.Bind1())(m)(function (v) {
+              return Control_Applicative.pure(dictMonad.Applicative0())(new Data_Either.Right(v));
+          });
+      };
+  });
   var mapExceptT = function (f) {
       return function (v) {
           return f(v);
@@ -1981,6 +1988,40 @@ var PS = {};
           return ExceptT(Control_Applicative.pure(dictMonad.Applicative0())(Data_Either.Right.create($98)));
       });
   };
+  var monadEffExceptT = function (dictMonadEff) {
+      return new Control_Monad_Eff_Class.MonadEff(function () {
+          return monadExceptT(dictMonadEff.Monad0());
+      }, function ($99) {
+          return Control_Monad_Trans_Class.lift(monadTransExceptT)(dictMonadEff.Monad0())(Control_Monad_Eff_Class.liftEff(dictMonadEff)($99));
+      });
+  };
+  var monadRecExceptT = function (dictMonadRec) {
+      return new Control_Monad_Rec_Class.MonadRec(function () {
+          return monadExceptT(dictMonadRec.Monad0());
+      }, function (f) {
+          return function ($100) {
+              return ExceptT(Control_Monad_Rec_Class.tailRecM(dictMonadRec)(function (a) {
+                  return Control_Bind.bind((dictMonadRec.Monad0()).Bind1())((function () {
+                      var v = f(a);
+                      return v;
+                  })())(function (m$prime) {
+                      return Control_Applicative.pure((dictMonadRec.Monad0()).Applicative0())((function () {
+                          if (m$prime instanceof Data_Either.Left) {
+                              return new Control_Monad_Rec_Class.Done(new Data_Either.Left(m$prime.value0));
+                          };
+                          if (m$prime instanceof Data_Either.Right && m$prime.value0 instanceof Control_Monad_Rec_Class.Loop) {
+                              return new Control_Monad_Rec_Class.Loop(m$prime.value0.value0);
+                          };
+                          if (m$prime instanceof Data_Either.Right && m$prime.value0 instanceof Control_Monad_Rec_Class.Done) {
+                              return new Control_Monad_Rec_Class.Done(new Data_Either.Right(m$prime.value0.value0));
+                          };
+                          throw new Error("Failed pattern match at Control.Monad.Except.Trans line 76, column 14 - line 79, column 43: " + [ m$prime.constructor.name ]);
+                      })());
+                  });
+              })($100));
+          };
+      });
+  };
   var monadThrowExceptT = function (dictMonad) {
       return new Control_Monad_Error_Class.MonadThrow(function () {
           return monadExceptT(dictMonad);
@@ -1997,6 +2038,9 @@ var PS = {};
   exports["applicativeExceptT"] = applicativeExceptT;
   exports["bindExceptT"] = bindExceptT;
   exports["monadExceptT"] = monadExceptT;
+  exports["monadRecExceptT"] = monadRecExceptT;
+  exports["monadTransExceptT"] = monadTransExceptT;
+  exports["monadEffExceptT"] = monadEffExceptT;
   exports["monadThrowExceptT"] = monadThrowExceptT;
 })(PS["Control.Monad.Except.Trans"] = PS["Control.Monad.Except.Trans"] || {});
 (function(exports) {
@@ -2605,10 +2649,6 @@ var PS = {};
     };
   };
 
-  exports._unsafeInterleaveAff = function (aff) {
-    return aff;
-  };
-
   exports._forkAff = function (nonCanceler, aff) {
     var voidF = function () {};
 
@@ -2974,10 +3014,6 @@ var PS = {};
 (function(exports) {
     "use strict";
 
-  exports.showErrorImpl = function (err) {
-    return err.stack || err.toString();
-  };
-
   exports.error = function (msg) {
     return new Error(msg);
   };
@@ -3002,10 +3038,8 @@ var PS = {};
   var Prelude = PS["Prelude"];
   var $$throw = function ($1) {
       return $foreign.throwException($foreign.error($1));
-  };                                                                               
-  var showError = new Data_Show.Show($foreign.showErrorImpl);
+  };
   exports["throw"] = $$throw;
-  exports["showError"] = showError;
   exports["error"] = $foreign.error;
   exports["throwException"] = $foreign.throwException;
 })(PS["Control.Monad.Eff.Exception"] = PS["Control.Monad.Eff.Exception"] || {});
@@ -3143,9 +3177,6 @@ var PS = {};
           return fromAVBox(Control_Monad_Aff_Internal._killVar(nonCanceler, q, e));
       };
   };
-  var liftEff$prime = function (eff) {
-      return attempt($foreign._unsafeInterleaveAff($foreign._liftEff(nonCanceler, eff)));
-  };
   var makeAff = function (h) {
       return makeAff$prime(function (e) {
           return function (a) {
@@ -3240,7 +3271,6 @@ var PS = {};
   exports["cancelWith"] = cancelWith;
   exports["forkAff"] = forkAff;
   exports["forkAll"] = forkAll;
-  exports["liftEff'"] = liftEff$prime;
   exports["makeAff"] = makeAff;
   exports["makeAff'"] = makeAff$prime;
   exports["nonCanceler"] = nonCanceler;
@@ -3322,12 +3352,6 @@ var PS = {};
   var Control_Monad_Eff = PS["Control.Monad.Eff"];
   var Data_Show = PS["Data.Show"];
   var Data_Unit = PS["Data.Unit"];
-  var logShow = function (dictShow) {
-      return function (a) {
-          return $foreign.log(Data_Show.show(dictShow)(a));
-      };
-  };
-  exports["logShow"] = logShow;
   exports["log"] = $foreign.log;
   exports["warn"] = $foreign.warn;
 })(PS["Control.Monad.Eff.Console"] = PS["Control.Monad.Eff.Console"] || {});
@@ -3339,16 +3363,10 @@ var PS = {};
   var Control_Monad_Eff_Console = PS["Control.Monad.Eff.Console"];
   var Control_Semigroupoid = PS["Control.Semigroupoid"];
   var Prelude = PS["Prelude"];
-  var logShow = function (dictShow) {
-      return function ($6) {
-          return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Control_Monad_Eff_Console.logShow(dictShow)($6));
-      };
-  };
   var log = function ($7) {
       return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Control_Monad_Eff_Console.log($7));
   };
   exports["log"] = log;
-  exports["logShow"] = logShow;
 })(PS["Control.Monad.Aff.Console"] = PS["Control.Monad.Aff.Console"] || {});
 (function(exports) {
   // Generated by purs version 0.11.6
@@ -4185,6 +4203,37 @@ var PS = {};
   exports["freeApply"] = freeApply;
   exports["freeMonad"] = freeMonad;
 })(PS["Control.Monad.Free"] = PS["Control.Monad.Free"] || {});
+(function(exports) {
+  // Generated by purs version 0.11.6
+  "use strict";
+  var Control_Applicative = PS["Control.Applicative"];
+  var Control_Bind = PS["Control.Bind"];
+  var Control_Monad_Free_Trans = PS["Control.Monad.Free.Trans"];
+  var Control_Monad_Rec_Class = PS["Control.Monad.Rec.Class"];
+  var Control_Monad_Trans_Class = PS["Control.Monad.Trans.Class"];
+  var Control_Semigroupoid = PS["Control.Semigroupoid"];
+  var Data_Foldable = PS["Data.Foldable"];
+  var Data_Function = PS["Data.Function"];
+  var Data_Functor = PS["Data.Functor"];
+  var Data_Identity = PS["Data.Identity"];
+  var Data_List = PS["Data.List"];
+  var Data_List_Types = PS["Data.List.Types"];
+  var Data_Newtype = PS["Data.Newtype"];
+  var Data_Ring = PS["Data.Ring"];
+  var Data_Unit = PS["Data.Unit"];
+  var Prelude = PS["Prelude"];        
+  var safely = function (dictMonadRec) {
+      return function (f) {
+          var lower = function (dictMonadRec1) {
+              return Control_Monad_Free_Trans.runFreeT(Data_Identity.functorIdentity)(dictMonadRec1)(function ($19) {
+                  return Control_Applicative.pure((dictMonadRec1.Monad0()).Applicative0())(Data_Newtype.unwrap(Data_Identity.newtypeIdentity)($19));
+              });
+          };
+          return lower(dictMonadRec)(f(Control_Monad_Free_Trans.monadRecFreeT(Data_Identity.functorIdentity)(dictMonadRec.Monad0()))(Control_Monad_Trans_Class.lift(Control_Monad_Free_Trans.monadTransFreeT(Data_Identity.functorIdentity))(dictMonadRec.Monad0()))(lower(dictMonadRec)));
+      };
+  };
+  exports["safely"] = safely;
+})(PS["Control.Safely"] = PS["Control.Safely"] || {});
 (function(exports) {
     "use strict";
 
@@ -9686,10 +9735,7 @@ var PS = {};
   var Halogen_HTML = PS["Halogen.HTML"];
   var Halogen_HTML_Core = PS["Halogen.HTML.Core"];
   var Halogen_HTML_Elements = PS["Halogen.HTML.Elements"];
-  var Halogen_HTML_Properties = PS["Halogen.HTML.Properties"];        
-  var $$Set = function (x) {
-      return x;
-  };
+  var Halogen_HTML_Properties = PS["Halogen.HTML.Properties"];
   var Package = function (x) {
       return x;
   };
@@ -9698,10 +9744,7 @@ var PS = {};
   };
   var renderPackage = function (v) {
       return Halogen_HTML_Core.text(v);
-  };
-  var newtypeSet = new Data_Newtype.Newtype(function (n) {
-      return n;
-  }, $$Set);
+  };        
   var newtypePackage = new Data_Newtype.Newtype(function (n) {
       return n;
   }, Package);
@@ -9736,7 +9779,6 @@ var PS = {};
   exports["newtypePackage"] = newtypePackage;
   exports["ordPackage"] = ordPackage;
   exports["eqSet"] = eqSet;
-  exports["newtypeSet"] = newtypeSet;
   exports["ordSet"] = ordSet;
 })(PS["PackageSet.Name"] = PS["PackageSet.Name"] || {});
 (function(exports) {
@@ -9925,23 +9967,25 @@ var PS = {};
   var SQL = function (x) {
       return x;
   };
-  var newtypeSQL = new Data_Newtype.Newtype(function (n) {
-      return n;
-  }, SQL);
-  var queryResult = function (sql) {
+  var queryResult = function (v) {
       return function (db) {
           return function __do() {
-              var v = SQLJS.exec(Data_Newtype.un(newtypeSQL)(SQL)(sql))(db)();
-              if (v.length === 1) {
-                  return v[0];
+              var v1 = SQLJS.exec(v)(db)();
+              if (v1.length === 0) {
+                  return {
+                      columns: [  ], 
+                      values: [  ]
+                  };
               };
-              return Control_Monad_Eff_Exception["throw"]("Expected exactly one result. Got " + Data_Show.show(Data_Show.showInt)(Data_Foldable.length(Data_Foldable.foldableArray)(Data_Semiring.semiringInt)(v)))();
+              if (v1.length === 1) {
+                  return v1[0];
+              };
+              return Control_Monad_Eff_Exception["throw"]("Expected exactly one result. Got " + (Data_Show.show(Data_Show.showInt)(Data_Foldable.length(Data_Foldable.foldableArray)(Data_Semiring.semiringInt)(v1)) + (". Query was: " + Data_Show.show(Data_Show.showString)(v))))();
           };
       };
   };
   exports["SQL"] = SQL;
   exports["queryResult"] = queryResult;
-  exports["newtypeSQL"] = newtypeSQL;
 })(PS["SQLJS.Typed"] = PS["SQLJS.Typed"] || {});
 (function(exports) {
   // Generated by purs version 0.11.6
@@ -9989,7 +10033,8 @@ var PS = {};
   exports["readString"] = readString;
 })(PS["Simple.JSON"] = PS["Simple.JSON"] || {});
 (function(exports) {
-    "use strict";
+  // Generated by purs version 0.11.6
+  "use strict";
   var Control_Applicative = PS["Control.Applicative"];
   var Control_Bind = PS["Control.Bind"];
   var Control_Monad_Aff = PS["Control.Monad.Aff"];
@@ -9997,9 +10042,9 @@ var PS = {};
   var Control_Monad_Eff = PS["Control.Monad.Eff"];
   var Control_Monad_Eff_Class = PS["Control.Monad.Eff.Class"];
   var Control_Monad_Eff_Console = PS["Control.Monad.Eff.Console"];
-  var Control_Monad_Eff_Exception = PS["Control.Monad.Eff.Exception"];
-  var Control_Monad_Except = PS["Control.Monad.Except"];
   var Control_Monad_Except_Trans = PS["Control.Monad.Except.Trans"];
+  var Control_Monad_Rec_Class = PS["Control.Monad.Rec.Class"];
+  var Control_Safely = PS["Control.Safely"];
   var Control_Semigroupoid = PS["Control.Semigroupoid"];
   var DOM_Classy_Element = PS["DOM.Classy.Element"];
   var DOM_HTML = PS["DOM.HTML"];
@@ -10014,7 +10059,6 @@ var PS = {};
   var Data_Foldable = PS["Data.Foldable"];
   var Data_Foreign = PS["Data.Foreign"];
   var Data_Function = PS["Data.Function"];
-  var Data_Functor = PS["Data.Functor"];
   var Data_Identity = PS["Data.Identity"];
   var Data_List_Types = PS["Data.List.Types"];
   var Data_Map = PS["Data.Map"];
@@ -10038,58 +10082,94 @@ var PS = {};
   var SQLJS = PS["SQLJS"];
   var SQLJS_Typed = PS["SQLJS.Typed"];
   var Simple_JSON = PS["Simple.JSON"];        
+  var toF$prime = function (dictApplicative) {
+      return Control_Monad_Except_Trans.mapExceptT(function ($53) {
+          return Control_Applicative.pure(dictApplicative)(Data_Newtype.un(Data_Identity.newtypeIdentity)(Data_Newtype.wrap(Data_Identity.newtypeIdentity))($53));
+      });
+  };
   var sqliteURI = "https://cdn.rawgit.com/joneshf/purescript-package-sets/master/package_sets.sqlite3";
   var packageSQL = "\x0a  SELECT name, repo, package_set, version\x0a  FROM package;\x0a  ";
+  var for$prime = function (dictMonadRec) {
+      return function (dictTraversable) {
+          return function (x) {
+              return function (f) {
+                  return Control_Safely.safely(dictMonadRec)(function (dictMonadRec1) {
+                      return function (lift) {
+                          return function (v) {
+                              return Data_Traversable["for"]((dictMonadRec1.Monad0()).Applicative0())(dictTraversable)(x)(function ($54) {
+                                  return lift(f($54));
+                              });
+                          };
+                      };
+                  });
+              };
+          };
+      };
+  };
+  var dependencySQL = function (v) {
+      return SQLJS_Typed.SQL("\x0a  SELECT dependent\x0a  FROM dependencies\x0a  WHERE independent = '" + (v.name + ("'\x0a    AND package_set = '" + (v.package_set + "';\x0a  "))));
+  };
   var main = Halogen_Aff_Util.runHalogenAff(Control_Bind.bind(Control_Monad_Aff.bindAff)(Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Control_Bind.bind(Control_Monad_Eff.bindEff)(DOM_HTML.window)(DOM_HTML_Window.document)))(function (v) {
       var parent = DOM_Node_Types.documentToNonElementParentNode(DOM_HTML_Types.htmlDocumentToDocument(v));
       return Control_Bind.bind(Control_Monad_Aff.bindAff)(Network_HTTP_Affjax.get(Network_HTTP_Affjax_Response.responsableArrayBuffer)(sqliteURI))(function (v1) {
-          return Control_Bind.bind(Control_Monad_Aff.bindAff)(Control_Monad_Aff["liftEff'"](function __do() {
-              var v2 = SQLJS["new"](Data_ArrayBuffer_Typed.asUint8Array(Data_ArrayBuffer_DataView.whole(v1.response)))();
-              var v3 = SQLJS_Typed.queryResult(packageSQL)(v2)();
-              return Control_Monad_Except.runExcept(Data_Traversable["for"](Control_Monad_Except_Trans.applicativeExceptT(Data_Identity.monadIdentity))(Data_Traversable.traversableArray)(v3.values)(function (v4) {
-                  if (v4.length === 4) {
-                      var dependencies = [  ];
-                      return Control_Bind.bind(Control_Monad_Except_Trans.bindExceptT(Data_Identity.monadIdentity))(Data_Functor.map(Control_Monad_Except_Trans.functorExceptT(Data_Identity.functorIdentity))(Data_Newtype.wrap(PackageSet_Name.newtypePackage))(Simple_JSON.read(Simple_JSON.readString)(v4[0])))(function (v5) {
-                          return Control_Bind.bind(Control_Monad_Except_Trans.bindExceptT(Data_Identity.monadIdentity))(Data_Functor.map(Control_Monad_Except_Trans.functorExceptT(Data_Identity.functorIdentity))(Data_Newtype.wrap(PackageSet_Repo.newtypeRepo))(Simple_JSON.read(Simple_JSON.readString)(v4[1])))(function (v6) {
-                              return Control_Bind.bind(Control_Monad_Except_Trans.bindExceptT(Data_Identity.monadIdentity))(Data_Functor.map(Control_Monad_Except_Trans.functorExceptT(Data_Identity.functorIdentity))(Data_Newtype.wrap(PackageSet_Name.newtypeSet))(Simple_JSON.read(Simple_JSON.readString)(v4[2])))(function (v7) {
-                                  return Control_Bind.bind(Control_Monad_Except_Trans.bindExceptT(Data_Identity.monadIdentity))(Data_Functor.map(Control_Monad_Except_Trans.functorExceptT(Data_Identity.functorIdentity))(Data_Newtype.wrap(PackageSet_Version.newtypeVersion))(Simple_JSON.read(Simple_JSON.readString)(v4[3])))(function (v8) {
-                                      return Control_Applicative.pure(Control_Monad_Except_Trans.applicativeExceptT(Data_Identity.monadIdentity))(new Data_Tuple.Tuple(v7, [ {
-                                          dependencies: dependencies, 
-                                          name: v5, 
-                                          repo: v6, 
-                                          version: v8
-                                      } ]));
+          return Control_Bind.bind(Control_Monad_Aff.bindAff)(Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(SQLJS["new"](Data_ArrayBuffer_Typed.asUint8Array(Data_ArrayBuffer_DataView.whole(v1.response)))))(function (v2) {
+              return Control_Bind.bind(Control_Monad_Aff.bindAff)(Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(SQLJS_Typed.queryResult(packageSQL)(v2)))(function (v3) {
+                  return Control_Bind.bind(Control_Monad_Aff.bindAff)(Control_Monad_Except_Trans.runExceptT(for$prime(Control_Monad_Except_Trans.monadRecExceptT(Control_Monad_Aff.monadRecAff))(Data_Traversable.traversableArray)(v3.values)(function (v4) {
+                      if (v4.length === 4) {
+                          return Control_Bind.bind(Control_Monad_Except_Trans.bindExceptT(Control_Monad_Aff.monadAff))(toF$prime(Control_Monad_Aff.applicativeAff)(Simple_JSON.read(Simple_JSON.readString)(v4[0])))(function (v5) {
+                              return Control_Bind.bind(Control_Monad_Except_Trans.bindExceptT(Control_Monad_Aff.monadAff))(toF$prime(Control_Monad_Aff.applicativeAff)(Simple_JSON.read(Simple_JSON.readString)(v4[1])))(function (v6) {
+                                  return Control_Bind.bind(Control_Monad_Except_Trans.bindExceptT(Control_Monad_Aff.monadAff))(toF$prime(Control_Monad_Aff.applicativeAff)(Simple_JSON.read(Simple_JSON.readString)(v4[2])))(function (v7) {
+                                      return Control_Bind.bind(Control_Monad_Except_Trans.bindExceptT(Control_Monad_Aff.monadAff))(toF$prime(Control_Monad_Aff.applicativeAff)(Simple_JSON.read(Simple_JSON.readString)(v4[3])))(function (v8) {
+                                          return Control_Bind.bind(Control_Monad_Except_Trans.bindExceptT(Control_Monad_Aff.monadAff))(Control_Monad_Eff_Class.liftEff(Control_Monad_Except_Trans.monadEffExceptT(Control_Monad_Aff.monadEffAff))(SQLJS_Typed.queryResult(dependencySQL({
+                                              name: v5, 
+                                              package_set: v7
+                                          }))(v2)))(function (v9) {
+                                              return Control_Bind.bind(Control_Monad_Except_Trans.bindExceptT(Control_Monad_Aff.monadAff))(for$prime(Control_Monad_Except_Trans.monadRecExceptT(Control_Monad_Aff.monadRecAff))(Data_Traversable.traversableArray)(v9.values)(function (v10) {
+                                                  if (v10.length === 1) {
+                                                      return Control_Bind.bind(Control_Monad_Except_Trans.bindExceptT(Control_Monad_Aff.monadAff))(toF$prime(Control_Monad_Aff.applicativeAff)(Simple_JSON.read(Simple_JSON.readString)(v10[0])))(function (v11) {
+                                                          return Control_Applicative.pure(Control_Monad_Except_Trans.applicativeExceptT(Control_Monad_Aff.monadAff))(Data_Newtype.wrap(PackageSet_Name.newtypePackage)(v11));
+                                                      });
+                                                  };
+                                                  return toF$prime(Control_Monad_Aff.applicativeAff)(Data_Foreign.fail(new Data_Foreign.ForeignError("Expected one field")));
+                                              }))(function (v10) {
+                                                  var $$package = {
+                                                      dependencies: v10, 
+                                                      name: Data_Newtype.wrap(PackageSet_Name.newtypePackage)(v5), 
+                                                      repo: Data_Newtype.wrap(PackageSet_Repo.newtypeRepo)(v6), 
+                                                      version: Data_Newtype.wrap(PackageSet_Version.newtypeVersion)(v8)
+                                                  };
+                                                  return Control_Applicative.pure(Control_Monad_Except_Trans.applicativeExceptT(Control_Monad_Aff.monadAff))(new Data_Tuple.Tuple(v7, [ $$package ]));
+                                              });
+                                          });
+                                      });
                                   });
                               });
                           });
-                      });
-                  };
-                  return Data_Foreign.fail(new Data_Foreign.ForeignError("expected four fields"));
-              }));
-          }))(function (v2) {
-              if (v2 instanceof Data_Either.Left) {
-                  return Control_Monad_Aff_Console.logShow(Control_Monad_Eff_Exception.showError)(v2.value0);
-              };
-              if (v2 instanceof Data_Either.Right && v2.value0 instanceof Data_Either.Left) {
-                  return Data_Foldable.traverse_(Control_Monad_Aff.applicativeAff)(Data_List_Types.foldableNonEmptyList)(function ($39) {
-                      return Control_Monad_Aff_Console.log(Data_Foreign.renderForeignError($39));
-                  })(v2.value0.value0);
-              };
-              if (v2 instanceof Data_Either.Right && v2.value0 instanceof Data_Either.Right) {
-                  var packageSets = Data_Map.fromFoldableWith(PackageSet_Name.ordSet)(Data_Foldable.foldableArray)(Data_Semigroup.append(Data_Semigroup.semigroupArray))(v2.value0.value0);
-                  return Control_Bind.bind(Control_Monad_Aff.bindAff)(Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(DOM_Node_NonElementParentNode.getElementById("sets")(parent)))(function (v3) {
-                      return Data_Foldable.for_(Control_Monad_Aff.applicativeAff)(Data_Foldable.foldableMaybe)(Control_Bind.bind(Data_Maybe.bindMaybe)(v3)(DOM_Classy_Element.fromElement(DOM_Classy_Element.isElementHTMLElement)))(function (el) {
-                          return Data_Foldable.for_(Control_Monad_Aff.applicativeAff)(Data_Foldable.foldableArray)(Data_Map.toUnfoldable(Data_Unfoldable.unfoldableArray)(packageSets))(function (v4) {
-                              return Halogen_VDom_Driver.runUI(PackageSet.packageSet(v4.value0)(Data_Array.sortWith(PackageSet_Name.ordPackage)(function ($40) {
-                                  return (function (v5) {
-                                      return v5.name;
-                                  })(Data_Newtype.un(PackageSet_Package.newtypePackage)(PackageSet_Package.Package)($40));
-                              })(v4.value1)))(Data_Unit.unit)(el);
+                      };
+                      return toF$prime(Control_Monad_Aff.applicativeAff)(Data_Foreign.fail(new Data_Foreign.ForeignError("expected four fields")));
+                  })))(function (v4) {
+                      if (v4 instanceof Data_Either.Left) {
+                          return Data_Foldable.traverse_(Control_Monad_Aff.applicativeAff)(Data_List_Types.foldableNonEmptyList)(function ($55) {
+                              return Control_Monad_Aff_Console.log(Data_Foreign.renderForeignError($55));
+                          })(v4.value0);
+                      };
+                      if (v4 instanceof Data_Either.Right) {
+                          var packageSets = Data_Map.fromFoldableWith(PackageSet_Name.ordSet)(Data_Foldable.foldableArray)(Data_Semigroup.append(Data_Semigroup.semigroupArray))(v4.value0);
+                          return Control_Bind.bind(Control_Monad_Aff.bindAff)(Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(DOM_Node_NonElementParentNode.getElementById("sets")(parent)))(function (v5) {
+                              return Data_Foldable.for_(Control_Monad_Aff.applicativeAff)(Data_Foldable.foldableMaybe)(Control_Bind.bind(Data_Maybe.bindMaybe)(v5)(DOM_Classy_Element.fromElement(DOM_Classy_Element.isElementHTMLElement)))(function (el) {
+                                  return Data_Foldable.for_(Control_Monad_Aff.applicativeAff)(Data_Foldable.foldableArray)(Data_Map.toUnfoldable(Data_Unfoldable.unfoldableArray)(packageSets))(function (v6) {
+                                      return Halogen_VDom_Driver.runUI(PackageSet.packageSet(v6.value0)(Data_Array.sortWith(PackageSet_Name.ordPackage)(function ($56) {
+                                          return (function (v7) {
+                                              return v7.name;
+                                          })(Data_Newtype.un(PackageSet_Package.newtypePackage)(PackageSet_Package.Package)($56));
+                                      })(v6.value1)))(Data_Unit.unit)(el);
+                                  });
+                              });
                           });
-                      });
+                      };
+                      throw new Error("Failed pattern match at Main line 71, column 3 - line 78, column 86: " + [ v4.constructor.name ]);
                   });
-              };
-              throw new Error("Failed pattern match at Main line 60, column 3 - line 68, column 86: " + [ v2.constructor.name ]);
+              });
           });
       });
   }));
