@@ -15,6 +15,7 @@ import DOM.HTML.Types (htmlDocumentToDocument)
 import DOM.HTML.Window (document)
 import DOM.Node.NonElementParentNode (getElementById)
 import DOM.Node.Types (ElementId(ElementId), documentToNonElementParentNode)
+import Data.Array (sortWith)
 import Data.ArrayBuffer.DataView (whole)
 import Data.ArrayBuffer.Typed (asUint8Array)
 import Data.Either (Either(Right, Left))
@@ -23,7 +24,7 @@ import Data.Foreign (ForeignError(..), fail, renderForeignError)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Map as Map
-import Data.Newtype (wrap)
+import Data.Newtype (un, wrap)
 import Data.Semigroup ((<>))
 import Data.Traversable (for)
 import Data.Tuple (Tuple(..))
@@ -45,7 +46,7 @@ main = HA.runHalogenAff do
   { response } <- Affjax.get sqliteURI
   result <- liftEff' do
     db <- SQLJS.new $ asUint8Array $ whole response
-    results <- SQLJS.exec "SELECT name, repo, package_set, version FROM package;" db
+    results <- SQLJS.exec packageSQL db
     pure $ runExcept case results of
       [{ values }] ->
         for values case _ of
@@ -66,7 +67,14 @@ main = HA.runHalogenAff do
       container <- liftEff $ getElementById (ElementId "sets") parent
       for_ (container >>= fromElement) \el ->
         for_ (Map.toUnfoldable packageSets :: Array _) \(Tuple name packages) ->
-          runUI (packageSet name packages) unit el
+          runUI (packageSet name (sortWith (_.name <<< un Package) packages)) unit el
+
+packageSQL :: String
+packageSQL =
+  """
+  SELECT name, repo, package_set, version
+  FROM package;
+  """
 
 sqliteURI :: String
 sqliteURI =

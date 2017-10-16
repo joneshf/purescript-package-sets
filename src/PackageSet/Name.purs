@@ -16,7 +16,12 @@ import Halogen.HTML.Properties as HP
 newtype Package
   = Package String
 
+derive instance eqPackage :: Eq Package
+
 derive instance newtypePackage :: Newtype Package _
+
+derive instance ordPackage :: Ord Package
+
 
 renderPackage :: forall f. Package -> H.ComponentHTML f
 renderPackage (Package name) = HH.text name
