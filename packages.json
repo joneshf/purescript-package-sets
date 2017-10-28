@@ -1513,6 +1513,16 @@
     "repo": "https://github.com/natefaubion/purescript-variant.git",
     "version": "v1.1.0"
   },
+  "webstorage": {
+    "dependencies": [
+      "eff",
+      "functions",
+      "maybe",
+      "prelude"
+    ],
+    "repo": "https://github.com/joneshf/purescript-webstorage.git",
+    "version": "v3.0.1"
+  },
   "yargs": {
     "dependencies": [
       "exceptions",
