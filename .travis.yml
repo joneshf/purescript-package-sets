@@ -20,5 +20,8 @@ install:
   - tar -xvf $HOME/psc-package.tar.gz -C $HOME/
   - chmod a+x $HOME/psc-package
 
+notifications:
+  email: false
+
 script:
   - ./travis.sh
