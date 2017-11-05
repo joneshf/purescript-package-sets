@@ -24,6 +24,7 @@ import Data.Foldable (for_, traverse_)
 import Data.Foreign (F, ForeignError(..), MultipleErrors, fail, renderForeignError)
 import Data.Function (($))
 import Data.Map as Map
+import Data.NaturalTransformation (type (~>))
 import Data.Newtype (un, wrap)
 import Data.Semigroup ((<>))
 import Data.Traversable (class Traversable, for)
@@ -99,7 +100,7 @@ sqliteURI =
 
 type F' = ExceptT MultipleErrors
 
-toF' :: forall a f. Applicative f => F a -> F' f a
+toF' :: forall f. Applicative f => F ~> F' f
 toF' = mapExceptT (pure <<< un wrap)
 
 for' :: forall a b f m. MonadRec m => Traversable f => f a -> (a -> m b) -> m (f b)
